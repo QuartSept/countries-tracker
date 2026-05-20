@@ -1,1 +1,923 @@
-<h1>Merhaba! Site çalışıyor.</h1>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>195 Ülke 195 Film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:       #f0f4ff;
+  --surface:  #ffffff;
+  --surface2: #f7f9ff;
+  --border:   #dde5f8;
+  --text:     #1a1f3c;
+  --muted:    #7b87b8;
+  --accent:   #4f6ef7;
+  --accent2:  #f7564f;
+  --green:    #22c97a;
+  --yellow:   #fbbf24;
+  --purple:   #a855f7;
+  --checked-fill: #4f6ef7;
+  --checked-bg:   #eef1ff;
+  --checked-border: #b8c3fb;
+  --hover-map: #fbbf24;
+  --font: 'Nunito', sans-serif;
+  --radius: 16px;
+  --shadow: 0 2px 16px #4f6ef718;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  min-height: 100vh;
+}
+
+/* ── CONFIG BANNER ── */
+#config-banner {
+  background: #fff8ed;
+  border-bottom: 2px solid #fde68a;
+  padding: 10px 24px;
+  font-size: 13px;
+  color: #92400e;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+#config-banner.hidden { display: none; }
+
+/* ── HEADER ── */
+header {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, #4f6ef7, #a855f7);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.logo-text { color: var(--text); }
+.logo-text span { color: var(--accent); }
+
+/* stats pills */
+.header-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+.stat-pill {
+  background: var(--checked-bg);
+  border: 2px solid var(--checked-border);
+  border-radius: 40px;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat-pill .num { font-size: 18px; color: var(--accent2); }
+.online-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 2s infinite;
+  display: inline-block;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── MAP SECTION ── */
+.map-wrap {
+  margin: 24px 24px 0;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+#world-map {
+  width: 100%;
+  height: 420px;
+  display: block;
+}
+
+#world-map path {
+  fill: #dde8ff;
+  stroke: #ffffff;
+  stroke-width: 0.5;
+  transition: fill .2s, filter .2s;
+  cursor: pointer;
+}
+#world-map path.hover-hl {
+  fill: var(--hover-map);
+  filter: drop-shadow(0 0 10px #fbbf2466);
+}
+#world-map path.is-checked {
+  fill: var(--checked-fill);
+  filter: drop-shadow(0 0 7px #4f6ef755);
+}
+#world-map path.is-checked.hover-hl {
+  fill: #2a4cdd;
+  filter: drop-shadow(0 0 12px #4f6ef799);
+}
+
+/* map tooltip */
+#map-tip {
+  position: absolute;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: #fff;
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+/* map legend */
+.map-legend {
+  position: absolute;
+  bottom: 14px; right: 18px;
+  display: flex; gap: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.leg { display: flex; align-items: center; gap: 5px; }
+.leg-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* map decor dots */
+.map-decor {
+  position: absolute;
+  top: 16px; left: 20px;
+  display: flex; gap: 6px;
+}
+.decor-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+
+/* ── CONTROLS ── */
+.controls {
+  display: flex;
+  gap: 10px;
+  padding: 20px 24px 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 380px;
+}
+.search-icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  pointer-events: none;
+}
+#search {
+  width: 100%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 14px 10px 42px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+#search:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #4f6ef722;
+}
+#search::placeholder { color: var(--muted); font-weight: 400; }
+
+.filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.fbtn {
+  padding: 8px 16px;
+  border-radius: 40px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+}
+.fbtn:hover { border-color: var(--accent); color: var(--accent); }
+.fbtn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 3px 12px #4f6ef740;
+}
+
+.region-sel {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 9px 14px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.region-sel:focus { border-color: var(--accent); }
+
+/* ── LIST ── */
+.list-section { padding: 10px 24px 56px; }
+
+.region-group { margin-bottom: 28px; }
+
+.region-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px 12px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 10px;
+}
+.region-emoji { font-size: 20px; }
+.region-title {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.region-count {
+  margin-left: auto;
+  background: var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 9px;
+  border-radius: 20px;
+}
+
+.country-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 6px;
+}
+
+.country-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .1s;
+  border: 2px solid transparent;
+  background: var(--surface);
+  user-select: none;
+  position: relative;
+}
+.country-item:hover {
+  border-color: var(--border);
+  background: #f0f4ff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px #4f6ef715;
+}
+.country-item:active { transform: translateY(0); }
+
+/* checked state */
+.country-item.is-checked {
+  background: var(--checked-bg);
+  border-color: var(--checked-border);
+}
+.country-item.is-checked .country-name {
+  color: var(--accent);
+  font-weight: 700;
+}
+.country-item.is-checked .check-box {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 10px #4f6ef760;
+}
+
+/* map-hover glow on list item */
+.country-item.map-hl {
+  background: #fffbeb;
+  border-color: #fbbf24;
+}
+
+.flag { font-size: 22px; line-height: 1; flex-shrink: 0; }
+
+.country-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  transition: color .15s;
+}
+
+.check-box {
+  width: 22px; height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: transparent;
+  transition: all .2s;
+  flex-shrink: 0;
+  background: var(--surface2);
+}
+
+/* ── LOADING ── */
+#loading {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  gap: 18px;
+  transition: opacity .4s;
+}
+#loading.fade-out { opacity: 0; pointer-events: none; }
+.loader-globe { font-size: 52px; animation: spin 1.2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+@media(max-width:600px){
+  header { padding: 14px 16px; }
+  .map-wrap { margin: 12px 12px 0; }
+  #world-map { height: 220px; }
+  .controls { padding: 12px 12px 4px; }
+  .list-section { padding: 6px 12px 40px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loader-globe">🌍</div>
+  <div class="loader-label">Harita yükleniyor…</div>
+</div>
+
+<!-- CONFIG BANNER -->
+<div id="config-banner">
+  ⚠️ Supabase yapılandırılmamış — <strong style="margin:0 3px">SUPABASE_URL</strong> ve <strong style="margin:0 3px">SUPABASE_KEY</strong> değerlerini dosyanın üstüne girin. Şu an <strong>demo modunda</strong> çalışıyor.
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌍</div>
+    <div class="logo-text">195 Ülke<span> 195 Film</span></div>
+  </div>
+  <div class="header-stats">
+    <div class="stat-pill">
+      <span class="online-dot"></span>
+      İşaretlenen: <span class="num" id="cnt-checked">0</span>
+    </div>
+    <div class="stat-pill" style="color:var(--muted);border-color:var(--border);background:var(--surface2)">
+      Toplam: <span class="num" style="color:var(--muted)" id="cnt-total">0</span>
+    </div>
+  </div>
+</header>
+
+<!-- MAP -->
+<div class="map-wrap">
+  <div class="map-decor">
+    <div class="decor-dot" style="background:#4f6ef7"></div>
+    <div class="decor-dot" style="background:#a855f7"></div>
+    <div class="decor-dot" style="background:#22c97a"></div>
+  </div>
+  <div id="map-tip"></div>
+  <svg id="world-map" viewBox="0 0 2000 1001" preserveAspectRatio="xMidYMid meet"></svg>
+
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search" placeholder="Ülke ara…" oninput="doFilter()">
+  </div>
+  <div class="filter-btns">
+    <button class="fbtn active" onclick="setFilter('all',this)">Tümü</button>
+    <button class="fbtn" onclick="setFilter('checked',this)">✓ İzlediklerim</button>
+  </div>
+  <select class="region-sel" id="rsel" onchange="doFilter()">
+    <option value="">Tüm bölgeler</option>
+    <option>Afrika</option>
+    <option>Asya</option>
+    <option>Avrupa</option>
+    <option>Kuzey Amerika</option>
+    <option>Güney Amerika</option>
+    <option>Okyanusya</option>
+  </select>
+</div>
+
+<!-- LIST -->
+<div class="list-section" id="list-section"></div>
+
+<script>
+/* ══ SUPABASE CONFIG ══ */
+const SUPABASE_URL = 'https://xbtztgutcknxjsusfmwl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_jShKJYgYQom8dw7EBo0cFQ_T-7RrRrl';
+
+/* ══ DATA ══ */
+const REGIONS = {
+  'Afrika':        '🌍',
+  'Asya':          '🌏',
+  'Avrupa':        '🌎',
+  'Kuzey Amerika': '🗺️',
+  'Güney Amerika': '🗺️',
+  'Okyanusya':     '🏝️',
+};
+
+const COUNTRIES = [
+  {code:'DZ',name:'Cezayir',flag:'🇩🇿',r:'Afrika'},
+  {code:'AO',name:'Angola',flag:'🇦🇴',r:'Afrika'},
+  {code:'BJ',name:'Benin',flag:'🇧🇯',r:'Afrika'},
+  {code:'BW',name:'Botsvana',flag:'🇧🇼',r:'Afrika'},
+  {code:'BF',name:'Burkina Faso',flag:'🇧🇫',r:'Afrika'},
+  {code:'BI',name:'Burundi',flag:'🇧🇮',r:'Afrika'},
+  {code:'CV',name:'Yeşil Burun',flag:'🇨🇻',r:'Afrika'},
+  {code:'CM',name:'Kamerun',flag:'🇨🇲',r:'Afrika'},
+  {code:'CF',name:'Orta Afrika Cumhuriyeti',flag:'🇨🇫',r:'Afrika'},
+  {code:'TD',name:'Çad',flag:'🇹🇩',r:'Afrika'},
+  {code:'KM',name:'Komorlar',flag:'🇰🇲',r:'Afrika'},
+  {code:'CG',name:'Kongo Cumhuriyeti',flag:'🇨🇬',r:'Afrika'},
+  {code:'CD',name:'Kongo Demokratik Cumhuriyeti',flag:'🇨🇩',r:'Afrika'},
+  {code:'CI',name:'Fildişi Sahili',flag:'🇨🇮',r:'Afrika'},
+  {code:'DJ',name:'Cibuti',flag:'🇩🇯',r:'Afrika'},
+  {code:'EG',name:'Mısır',flag:'🇪🇬',r:'Afrika'},
+  {code:'GQ',name:'Ekvator Ginesi',flag:'🇬🇶',r:'Afrika'},
+  {code:'ER',name:'Eritre',flag:'🇪🇷',r:'Afrika'},
+  {code:'SZ',name:'Esvatini',flag:'🇸🇿',r:'Afrika'},
+  {code:'ET',name:'Etiyopya',flag:'🇪🇹',r:'Afrika'},
+  {code:'GA',name:'Gabon',flag:'🇬🇦',r:'Afrika'},
+  {code:'GM',name:'Gambiya',flag:'🇬🇲',r:'Afrika'},
+  {code:'GH',name:'Gana',flag:'🇬🇭',r:'Afrika'},
+  {code:'GN',name:'Gine',flag:'🇬🇳',r:'Afrika'},
+  {code:'GW',name:'Gine-Bissau',flag:'🇬🇼',r:'Afrika'},
+  {code:'KE',name:'Kenya',flag:'🇰🇪',r:'Afrika'},
+  {code:'LS',name:'Lesoto',flag:'🇱🇸',r:'Afrika'},
+  {code:'LR',name:'Liberya',flag:'🇱🇷',r:'Afrika'},
+  {code:'LY',name:'Libya',flag:'🇱🇾',r:'Afrika'},
+  {code:'MG',name:'Madagaskar',flag:'🇲🇬',r:'Afrika'},
+  {code:'MW',name:'Malavi',flag:'🇲🇼',r:'Afrika'},
+  {code:'ML',name:'Mali',flag:'🇲🇱',r:'Afrika'},
+  {code:'MR',name:'Moritanya',flag:'🇲🇷',r:'Afrika'},
+  {code:'MU',name:'Mauritius',flag:'🇲🇺',r:'Afrika'},
+  {code:'MA',name:'Fas',flag:'🇲🇦',r:'Afrika'},
+  {code:'MZ',name:'Mozambik',flag:'🇲🇿',r:'Afrika'},
+  {code:'NA',name:'Namibya',flag:'🇳🇦',r:'Afrika'},
+  {code:'NE',name:'Nijer',flag:'🇳🇪',r:'Afrika'},
+  {code:'NG',name:'Nijerya',flag:'🇳🇬',r:'Afrika'},
+  {code:'RW',name:'Ruanda',flag:'🇷🇼',r:'Afrika'},
+  {code:'ST',name:'Sao Tome ve Principe',flag:'🇸🇹',r:'Afrika'},
+  {code:'SN',name:'Senegal',flag:'🇸🇳',r:'Afrika'},
+  {code:'SC',name:'Seyşeller',flag:'🇸🇨',r:'Afrika'},
+  {code:'SL',name:'Sierra Leone',flag:'🇸🇱',r:'Afrika'},
+  {code:'SO',name:'Somali',flag:'🇸🇴',r:'Afrika'},
+  {code:'ZA',name:'Güney Afrika',flag:'🇿🇦',r:'Afrika'},
+  {code:'SS',name:'Güney Sudan',flag:'🇸🇸',r:'Afrika'},
+  {code:'SD',name:'Sudan',flag:'🇸🇩',r:'Afrika'},
+  {code:'TZ',name:'Tanzanya',flag:'🇹🇿',r:'Afrika'},
+  {code:'TG',name:'Togo',flag:'🇹🇬',r:'Afrika'},
+  {code:'TN',name:'Tunus',flag:'🇹🇳',r:'Afrika'},
+  {code:'UG',name:'Uganda',flag:'🇺🇬',r:'Afrika'},
+  {code:'ZM',name:'Zambiya',flag:'🇿🇲',r:'Afrika'},
+  {code:'ZW',name:'Zimbabve',flag:'🇿🇼',r:'Afrika'},
+  {code:'AF',name:'Afganistan',flag:'🇦🇫',r:'Asya'},
+  {code:'AM',name:'Ermenistan',flag:'🇦🇲',r:'Asya'},
+  {code:'AZ',name:'Azerbaycan',flag:'🇦🇿',r:'Asya'},
+  {code:'BH',name:'Bahreyn',flag:'🇧🇭',r:'Asya'},
+  {code:'BD',name:'Bangladeş',flag:'🇧🇩',r:'Asya'},
+  {code:'BT',name:'Butan',flag:'🇧🇹',r:'Asya'},
+  {code:'BN',name:'Brunei',flag:'🇧🇳',r:'Asya'},
+  {code:'KH',name:'Kamboçya',flag:'🇰🇭',r:'Asya'},
+  {code:'CN',name:'Çin',flag:'🇨🇳',r:'Asya'},
+  {code:'CY',name:'Kıbrıs',flag:'🇨🇾',r:'Asya'},
+  {code:'GE',name:'Gürcistan',flag:'🇬🇪',r:'Asya'},
+  {code:'IN',name:'Hindistan',flag:'🇮🇳',r:'Asya'},
+  {code:'ID',name:'Endonezya',flag:'🇮🇩',r:'Asya'},
+  {code:'IR',name:'İran',flag:'🇮🇷',r:'Asya'},
+  {code:'IQ',name:'Irak',flag:'🇮🇶',r:'Asya'},
+  {code:'IL',name:'İsrail',flag:'🇮🇱',r:'Asya'},
+  {code:'JP',name:'Japonya',flag:'🇯🇵',r:'Asya'},
+  {code:'JO',name:'Ürdün',flag:'🇯🇴',r:'Asya'},
+  {code:'KZ',name:'Kazakistan',flag:'🇰🇿',r:'Asya'},
+  {code:'KW',name:'Kuveyt',flag:'🇰🇼',r:'Asya'},
+  {code:'KG',name:'Kırgızistan',flag:'🇰🇬',r:'Asya'},
+  {code:'LA',name:'Laos',flag:'🇱🇦',r:'Asya'},
+  {code:'LB',name:'Lübnan',flag:'🇱🇧',r:'Asya'},
+  {code:'MY',name:'Malezya',flag:'🇲🇾',r:'Asya'},
+  {code:'MV',name:'Maldivler',flag:'🇲🇻',r:'Asya'},
+  {code:'MN',name:'Moğolistan',flag:'🇲🇳',r:'Asya'},
+  {code:'MM',name:'Myanmar',flag:'🇲🇲',r:'Asya'},
+  {code:'NP',name:'Nepal',flag:'🇳🇵',r:'Asya'},
+  {code:'KP',name:'Kuzey Kore',flag:'🇰🇵',r:'Asya'},
+  {code:'OM',name:'Umman',flag:'🇴🇲',r:'Asya'},
+  {code:'PK',name:'Pakistan',flag:'🇵🇰',r:'Asya'},
+  {code:'PS',name:'Filistin',flag:'🇵🇸',r:'Asya'},
+  {code:'PH',name:'Filipinler',flag:'🇵🇭',r:'Asya'},
+  {code:'QA',name:'Katar',flag:'🇶🇦',r:'Asya'},
+  {code:'SA',name:'Suudi Arabistan',flag:'🇸🇦',r:'Asya'},
+  {code:'SG',name:'Singapur',flag:'🇸🇬',r:'Asya'},
+  {code:'KR',name:'Güney Kore',flag:'🇰🇷',r:'Asya'},
+  {code:'LK',name:'Sri Lanka',flag:'🇱🇰',r:'Asya'},
+  {code:'SY',name:'Suriye',flag:'🇸🇾',r:'Asya'},
+  {code:'TW',name:'Tayvan',flag:'🇹🇼',r:'Asya'},
+  {code:'TJ',name:'Tacikistan',flag:'🇹🇯',r:'Asya'},
+  {code:'TH',name:'Tayland',flag:'🇹🇭',r:'Asya'},
+  {code:'TL',name:'Doğu Timor',flag:'🇹🇱',r:'Asya'},
+  {code:'TR',name:'Türkiye',flag:'🇹🇷',r:'Asya'},
+  {code:'TM',name:'Türkmenistan',flag:'🇹🇲',r:'Asya'},
+  {code:'AE',name:'BAE',flag:'🇦🇪',r:'Asya'},
+  {code:'UZ',name:'Özbekistan',flag:'🇺🇿',r:'Asya'},
+  {code:'VN',name:'Vietnam',flag:'🇻🇳',r:'Asya'},
+  {code:'YE',name:'Yemen',flag:'🇾🇪',r:'Asya'},
+  {code:'AL',name:'Arnavutluk',flag:'🇦🇱',r:'Avrupa'},
+  {code:'AD',name:'Andorra',flag:'🇦🇩',r:'Avrupa'},
+  {code:'AT',name:'Avusturya',flag:'🇦🇹',r:'Avrupa'},
+  {code:'BY',name:'Belarus',flag:'🇧🇾',r:'Avrupa'},
+  {code:'BE',name:'Belçika',flag:'🇧🇪',r:'Avrupa'},
+  {code:'BA',name:'Bosna Hersek',flag:'🇧🇦',r:'Avrupa'},
+  {code:'BG',name:'Bulgaristan',flag:'🇧🇬',r:'Avrupa'},
+  {code:'HR',name:'Hırvatistan',flag:'🇭🇷',r:'Avrupa'},
+  {code:'CZ',name:'Çekya',flag:'🇨🇿',r:'Avrupa'},
+  {code:'DK',name:'Danimarka',flag:'🇩🇰',r:'Avrupa'},
+  {code:'EE',name:'Estonya',flag:'🇪🇪',r:'Avrupa'},
+  {code:'FI',name:'Finlandiya',flag:'🇫🇮',r:'Avrupa'},
+  {code:'FR',name:'Fransa',flag:'🇫🇷',r:'Avrupa'},
+  {code:'DE',name:'Almanya',flag:'🇩🇪',r:'Avrupa'},
+  {code:'GR',name:'Yunanistan',flag:'🇬🇷',r:'Avrupa'},
+  {code:'HU',name:'Macaristan',flag:'🇭🇺',r:'Avrupa'},
+  {code:'IS',name:'İzlanda',flag:'🇮🇸',r:'Avrupa'},
+  {code:'IE',name:'İrlanda',flag:'🇮🇪',r:'Avrupa'},
+  {code:'IT',name:'İtalya',flag:'🇮🇹',r:'Avrupa'},
+  {code:'XK',name:'Kosova',flag:'🇽🇰',r:'Avrupa'},
+  {code:'LV',name:'Letonya',flag:'🇱🇻',r:'Avrupa'},
+  {code:'LI',name:'Liechtenstein',flag:'🇱🇮',r:'Avrupa'},
+  {code:'LT',name:'Litvanya',flag:'🇱🇹',r:'Avrupa'},
+  {code:'LU',name:'Lüksemburg',flag:'🇱🇺',r:'Avrupa'},
+  {code:'MT',name:'Malta',flag:'🇲🇹',r:'Avrupa'},
+  {code:'MD',name:'Moldova',flag:'🇲🇩',r:'Avrupa'},
+  {code:'MC',name:'Monako',flag:'🇲🇨',r:'Avrupa'},
+  {code:'ME',name:'Karadağ',flag:'🇲🇪',r:'Avrupa'},
+  {code:'NL',name:'Hollanda',flag:'🇳🇱',r:'Avrupa'},
+  {code:'MK',name:'Kuzey Makedonya',flag:'🇲🇰',r:'Avrupa'},
+  {code:'NO',name:'Norveç',flag:'🇳🇴',r:'Avrupa'},
+  {code:'PL',name:'Polonya',flag:'🇵🇱',r:'Avrupa'},
+  {code:'PT',name:'Portekiz',flag:'🇵🇹',r:'Avrupa'},
+  {code:'RO',name:'Romanya',flag:'🇷🇴',r:'Avrupa'},
+  {code:'RU',name:'Rusya',flag:'🇷🇺',r:'Avrupa'},
+  {code:'SM',name:'San Marino',flag:'🇸🇲',r:'Avrupa'},
+  {code:'RS',name:'Sırbistan',flag:'🇷🇸',r:'Avrupa'},
+  {code:'SK',name:'Slovakya',flag:'🇸🇰',r:'Avrupa'},
+  {code:'SI',name:'Slovenya',flag:'🇸🇮',r:'Avrupa'},
+  {code:'ES',name:'İspanya',flag:'🇪🇸',r:'Avrupa'},
+  {code:'SE',name:'İsveç',flag:'🇸🇪',r:'Avrupa'},
+  {code:'CH',name:'İsviçre',flag:'🇨🇭',r:'Avrupa'},
+  {code:'UA',name:'Ukrayna',flag:'🇺🇦',r:'Avrupa'},
+  {code:'GB',name:'Birleşik Krallık',flag:'🇬🇧',r:'Avrupa'},
+  {code:'VA',name:'Vatikan',flag:'🇻🇦',r:'Avrupa'},
+  {code:'AG',name:'Antigua ve Barbuda',flag:'🇦🇬',r:'Kuzey Amerika'},
+  {code:'BS',name:'Bahamalar',flag:'🇧🇸',r:'Kuzey Amerika'},
+  {code:'BB',name:'Barbados',flag:'🇧🇧',r:'Kuzey Amerika'},
+  {code:'BZ',name:'Belize',flag:'🇧🇿',r:'Kuzey Amerika'},
+  {code:'CA',name:'Kanada',flag:'🇨🇦',r:'Kuzey Amerika'},
+  {code:'CR',name:'Kosta Rika',flag:'🇨🇷',r:'Kuzey Amerika'},
+  {code:'CU',name:'Küba',flag:'🇨🇺',r:'Kuzey Amerika'},
+  {code:'DM',name:'Dominika',flag:'🇩🇲',r:'Kuzey Amerika'},
+  {code:'DO',name:'Dominik Cumhuriyeti',flag:'🇩🇴',r:'Kuzey Amerika'},
+  {code:'SV',name:'El Salvador',flag:'🇸🇻',r:'Kuzey Amerika'},
+  {code:'GD',name:'Grenada',flag:'🇬🇩',r:'Kuzey Amerika'},
+  {code:'GT',name:'Guatemala',flag:'🇬🇹',r:'Kuzey Amerika'},
+  {code:'HT',name:'Haiti',flag:'🇭🇹',r:'Kuzey Amerika'},
+  {code:'HN',name:'Honduras',flag:'🇭🇳',r:'Kuzey Amerika'},
+  {code:'JM',name:'Jamaika',flag:'🇯🇲',r:'Kuzey Amerika'},
+  {code:'MX',name:'Meksika',flag:'🇲🇽',r:'Kuzey Amerika'},
+  {code:'NI',name:'Nikaragua',flag:'🇳🇮',r:'Kuzey Amerika'},
+  {code:'PA',name:'Panama',flag:'🇵🇦',r:'Kuzey Amerika'},
+  {code:'KN',name:'Saint Kitts ve Nevis',flag:'🇰🇳',r:'Kuzey Amerika'},
+  {code:'LC',name:'Saint Lucia',flag:'🇱🇨',r:'Kuzey Amerika'},
+  {code:'VC',name:'Saint Vincent',flag:'🇻🇨',r:'Kuzey Amerika'},
+  {code:'TT',name:'Trinidad ve Tobago',flag:'🇹🇹',r:'Kuzey Amerika'},
+  {code:'US',name:'ABD',flag:'🇺🇸',r:'Kuzey Amerika'},
+  {code:'AR',name:'Arjantin',flag:'🇦🇷',r:'Güney Amerika'},
+  {code:'BO',name:'Bolivya',flag:'🇧🇴',r:'Güney Amerika'},
+  {code:'BR',name:'Brezilya',flag:'🇧🇷',r:'Güney Amerika'},
+  {code:'CL',name:'Şili',flag:'🇨🇱',r:'Güney Amerika'},
+  {code:'CO',name:'Kolombiya',flag:'🇨🇴',r:'Güney Amerika'},
+  {code:'EC',name:'Ekvador',flag:'🇪🇨',r:'Güney Amerika'},
+  {code:'GY',name:'Guyana',flag:'🇬🇾',r:'Güney Amerika'},
+  {code:'PY',name:'Paraguay',flag:'🇵🇾',r:'Güney Amerika'},
+  {code:'PE',name:'Peru',flag:'🇵🇪',r:'Güney Amerika'},
+  {code:'SR',name:'Surinam',flag:'🇸🇷',r:'Güney Amerika'},
+  {code:'UY',name:'Uruguay',flag:'🇺🇾',r:'Güney Amerika'},
+  {code:'VE',name:'Venezuela',flag:'🇻🇪',r:'Güney Amerika'},
+  {code:'AU',name:'Avustralya',flag:'🇦🇺',r:'Okyanusya'},
+  {code:'FJ',name:'Fiji',flag:'🇫🇯',r:'Okyanusya'},
+  {code:'KI',name:'Kiribati',flag:'🇰🇮',r:'Okyanusya'},
+  {code:'MH',name:'Marshall Adaları',flag:'🇲🇭',r:'Okyanusya'},
+  {code:'FM',name:'Mikronezya',flag:'🇫🇲',r:'Okyanusya'},
+  {code:'NR',name:'Nauru',flag:'🇳🇷',r:'Okyanusya'},
+  {code:'NZ',name:'Yeni Zelanda',flag:'🇳🇿',r:'Okyanusya'},
+  {code:'PW',name:'Palau',flag:'🇵🇼',r:'Okyanusya'},
+  {code:'PG',name:'Papua Yeni Gine',flag:'🇵🇬',r:'Okyanusya'},
+  {code:'WS',name:'Samoa',flag:'🇼🇸',r:'Okyanusya'},
+  {code:'SB',name:'Solomon Adaları',flag:'🇸🇧',r:'Okyanusya'},
+  {code:'TO',name:'Tonga',flag:'🇹🇴',r:'Okyanusya'},
+  {code:'TV',name:'Tuvalu',flag:'🇹🇻',r:'Okyanusya'},
+  {code:'VU',name:'Vanuatu',flag:'🇻🇺',r:'Okyanusya'},
+];
+
+/* ══ STATE ══ */
+let checks = {};   // { 'TR': true, ... }
+let activeFilter = 'all';
+let sb = null;
+let demoMode = false;
+
+const NUM_TO_A2 = {4:'AF',8:'AL',12:'DZ',24:'AO',32:'AR',36:'AU',40:'AT',31:'AZ',50:'BD',112:'BY',56:'BE',84:'BZ',204:'BJ',64:'BT',68:'BO',70:'BA',72:'BW',76:'BR',100:'BG',854:'BF',108:'BI',116:'KH',120:'CM',124:'CA',140:'CF',148:'TD',152:'CL',170:'CO',174:'KM',178:'CG',180:'CD',188:'CR',191:'HR',192:'CU',196:'CY',203:'CZ',208:'DK',262:'DJ',212:'DM',214:'DO',218:'EC',818:'EG',222:'SV',226:'GQ',232:'ER',233:'EE',231:'ET',242:'FJ',246:'FI',250:'FR',266:'GA',270:'GM',268:'GE',276:'DE',288:'GH',300:'GR',308:'GD',320:'GT',324:'GN',624:'GW',328:'GY',332:'HT',340:'HN',348:'HU',356:'IN',360:'ID',364:'IR',368:'IQ',372:'IE',376:'IL',380:'IT',388:'JM',392:'JP',400:'JO',398:'KZ',404:'KE',296:'KI',408:'KP',410:'KR',414:'KW',417:'KG',418:'LA',428:'LV',422:'LB',426:'LS',430:'LR',434:'LY',440:'LT',442:'LU',450:'MG',454:'MW',458:'MY',462:'MV',466:'ML',478:'MR',480:'MU',484:'MX',498:'MD',492:'MC',496:'MN',504:'MA',508:'MZ',516:'NA',524:'NP',528:'NL',554:'NZ',558:'NI',562:'NE',566:'NG',578:'NO',512:'OM',586:'PK',591:'PA',598:'PG',600:'PY',604:'PE',608:'PH',616:'PL',620:'PT',634:'QA',642:'RO',643:'RU',646:'RW',659:'KN',662:'LC',670:'VC',882:'WS',674:'SM',678:'ST',682:'SA',686:'SN',690:'SC',694:'SL',703:'SK',705:'SI',706:'SO',710:'ZA',724:'ES',144:'LK',729:'SD',740:'SR',752:'SE',756:'CH',760:'SY',762:'TJ',834:'TZ',764:'TH',768:'TG',776:'TO',780:'TT',788:'TN',800:'UG',804:'UA',784:'AE',826:'GB',840:'US',858:'UY',860:'UZ',548:'VU',862:'VE',704:'VN',887:'YE',894:'ZM',716:'ZW',807:'MK',499:'ME',688:'RS',51:'AM',792:'TR',156:'CN'};
+
+/* ══ SUPABASE ══ */
+function initSB() {
+  if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_URL') { demoMode = true; return; }
+  try {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    document.getElementById('config-banner').classList.add('hidden');
+  } catch(e) { demoMode = true; }
+}
+
+async function loadChecks() {
+  if (demoMode) return;
+  try {
+    const { data, error } = await sb.from('country_checks').select('country_code,checked');
+    if (error) throw error;
+    if (data) data.forEach(r => { if (r.checked) checks[r.country_code] = true; });
+  } catch(e) { console.warn('loadChecks:', e); }
+}
+
+async function saveCheck(code, val) {
+  if (demoMode) return;
+  try {
+    if (val) {
+      await sb.from('country_checks').upsert({ country_code: code, checked: true });
+    } else {
+      await sb.from('country_checks').delete().eq('country_code', code);
+    }
+  } catch(e) { console.warn('saveCheck:', e); }
+}
+
+function subscribeRT() {
+  if (!sb) return;
+  sb.channel('cc').on('postgres_changes',{event:'*',schema:'public',table:'country_checks'}, p => {
+    const r = p.new || p.old;
+    if (!r) return;
+    if (p.eventType === 'DELETE') delete checks[r.country_code];
+    else checks[r.country_code] = r.checked;
+    refreshItem(r.country_code);
+    refreshMapPath(r.country_code);
+    updateStats();
+  }).subscribe();
+}
+
+/* ══ TOGGLE ══ */
+function toggle(code) {
+  if (checks[code]) delete checks[code];
+  else checks[code] = true;
+  saveCheck(code, !!checks[code]);
+  refreshItem(code);
+  refreshMapPath(code);
+  updateStats();
+}
+
+/* ══ RENDER ══ */
+function renderList() {
+  const sec = document.getElementById('list-section');
+  sec.innerHTML = '';
+  const regionOrder = ['Afrika','Asya','Avrupa','Kuzey Amerika','Güney Amerika','Okyanusya'];
+  regionOrder.forEach(region => {
+    const list = COUNTRIES.filter(c => c.r === region);
+    const grp = document.createElement('div');
+    grp.className = 'region-group';
+    grp.id = 'grp-' + region;
+    grp.innerHTML = `
+      <div class="region-header">
+        <span class="region-emoji">${REGIONS[region]}</span>
+        <span class="region-title">${region}</span>
+        <span class="region-count" id="rc-${region}">${list.length}</span>
+      </div>
+      <div class="country-grid" id="grid-${region}"></div>`;
+    sec.appendChild(grp);
+
+    const grid = grp.querySelector('.country-grid');
+    list.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'country-item' + (checks[c.code] ? ' is-checked' : '');
+      el.dataset.code = c.code;
+      el.dataset.name = c.name.toLocaleLowerCase('tr');
+      el.dataset.region = c.r;
+      el.innerHTML = `
+        <span class="flag">${c.flag}</span>
+        <span class="country-name">${c.name}</span>
+        <div class="check-box">${checks[c.code] ? '✓' : ''}</div>`;
+      el.onclick = () => toggle(c.code);
+      el.addEventListener('mouseenter', () => { el.classList.add('map-hl'); hlMap(c.code, true); });
+      el.addEventListener('mouseleave', () => { el.classList.remove('map-hl'); hlMap(c.code, false); });
+      grid.appendChild(el);
+    });
+  });
+}
+
+function refreshItem(code) {
+  const el = document.querySelector(`.country-item[data-code="${code}"]`);
+  if (!el) return;
+  const on = !!checks[code];
+  el.classList.toggle('is-checked', on);
+  el.querySelector('.check-box').textContent = on ? '✓' : '';
+}
+
+function refreshMapPath(code) {
+  document.querySelectorAll(`#world-map [data-code="${code}"]`).forEach(p => {
+    p.classList.toggle('is-checked', !!checks[code]);
+  });
+}
+
+function updateStats() {
+  document.getElementById('cnt-checked').textContent = Object.keys(checks).length;
+  document.getElementById('cnt-total').textContent = COUNTRIES.length;
+}
+
+/* ══ FILTER ══ */
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  doFilter();
+}
+
+function doFilter() {
+  const q = document.getElementById('search').value.toLocaleLowerCase('tr');
+  const region = document.getElementById('rsel').value;
+  document.querySelectorAll('.country-item').forEach(el => {
+    const on = !!checks[el.dataset.code];
+    let show = true;
+    if (q && !el.dataset.name.includes(q)) show = false;
+    if (region && el.dataset.region !== region) show = false;
+    if (activeFilter === 'checked' && !on) show = false;
+    if (activeFilter === 'unchecked' && on) show = false;
+    el.style.display = show ? '' : 'none';
+  });
+  document.querySelectorAll('.region-group').forEach(g => {
+    const any = [...g.querySelectorAll('.country-item')].some(i => i.style.display !== 'none');
+    g.style.display = any ? '' : 'none';
+  });
+}
+
+/* ══ MAP HIGHLIGHT ══ */
+function hlMap(code, on) {
+  document.querySelectorAll(`#world-map [data-code="${code}"]`).forEach(p =>
+    p.classList.toggle('hover-hl', on)
+  );
+  const tip = document.getElementById('map-tip');
+  if (on) {
+    const c = COUNTRIES.find(x => x.code === code);
+    tip.textContent = c ? `${c.flag} ${c.name}` : code;
+    tip.style.opacity = '1';
+  } else {
+    tip.style.opacity = '0';
+  }
+}
+
+/* ══ MAP LOAD ══ */
+function loadMap() {
+  const d3s = document.createElement('script');
+  d3s.src = 'https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js';
+  d3s.onload = () => {
+    const ts = document.createElement('script');
+    ts.src = 'https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';
+    ts.onload = () => {
+      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+        .then(r => r.json())
+        .then(topo => renderMap(topo))
+        .catch(() => finishLoading());
+    };
+    document.head.appendChild(ts);
+  };
+  document.head.appendChild(d3s);
+}
+
+function renderMap(topo) {
+  const svg = d3.select('#world-map');
+  const proj = d3.geoNaturalEarth1().scale(320).translate([1000, 500]);
+  const path = d3.geoPath().projection(proj);
+  const countries = topojson.feature(topo, topo.objects.countries);
+
+  svg.selectAll('path')
+    .data(countries.features)
+    .join('path')
+    .attr('d', path)
+    .attr('data-code', d => NUM_TO_A2[+d.id] || '')
+    .classed('is-checked', d => !!checks[NUM_TO_A2[+d.id]])
+    .on('mouseenter', function(e, d) {
+      const code = NUM_TO_A2[+d.id];
+      if (!code) return;
+      d3.select(this).classed('hover-hl', true);
+      const c = COUNTRIES.find(x => x.code === code);
+      const tip = document.getElementById('map-tip');
+      tip.textContent = c ? `${c.flag} ${c.name}` : code;
+      tip.style.opacity = '1';
+      const li = document.querySelector(`.country-item[data-code="${code}"]`);
+      if (li) li.classList.add('map-hl');
+    })
+    .on('mouseleave', function(e, d) {
+      const code = NUM_TO_A2[+d.id];
+      d3.select(this).classed('hover-hl', false);
+      document.getElementById('map-tip').style.opacity = '0';
+      if (code) {
+        const li = document.querySelector(`.country-item[data-code="${code}"]`);
+        if (li) li.classList.remove('map-hl');
+      }
+    })
+    .on('click', function(e, d) {
+      const code = NUM_TO_A2[+d.id];
+      if (code && COUNTRIES.find(c => c.code === code)) toggle(code);
+    });
+
+  finishLoading();
+}
+
+function finishLoading() {
+  const l = document.getElementById('loading');
+  l.classList.add('fade-out');
+  setTimeout(() => l.remove(), 500);
+}
+
+/* ══ BOOT ══ */
+async function init() {
+  initSB();
+  await loadChecks();
+  renderList();
+  updateStats();
+  subscribeRT();
+  loadMap();
+}
+
+init();
+</script>
+</body>
+</html>
