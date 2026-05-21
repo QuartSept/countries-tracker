@@ -395,6 +395,94 @@ header {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+/* ── FILM INFO (inline under item) ── */
+.film-info {
+  display: none;
+  padding: 8px 12px 10px 44px;
+  margin-top: -4px;
+  background: var(--checked-bg);
+  border: 2px solid var(--checked-border);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  gap: 8px;
+  flex-direction: column;
+}
+.film-info.open { display: flex; }
+
+.film-input {
+  width: 100%;
+  border: 2px solid var(--checked-border);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .2s;
+}
+.film-input:focus { border-color: var(--accent); }
+.film-input::placeholder { color: var(--muted); font-weight: 400; }
+
+.stars-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.stars-row span {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.star-btn {
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 1px;
+  line-height: 1;
+  transition: transform .1s;
+  filter: grayscale(1) opacity(.35);
+}
+.star-btn:hover, .star-btn.lit { filter: none; transform: scale(1.15); }
+.star-btn.lit { filter: none; }
+
+.film-save-btn {
+  align-self: flex-end;
+  padding: 6px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.film-save-btn:hover { opacity: .85; }
+
+/* saved badge on country item */
+.film-badge {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: #e0e7ff;
+  border-radius: 8px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.film-badge.visible { display: flex; }
+.film-badge .bstar { font-size: 10px; }
+
 @media(max-width:600px){
   header { padding: 14px 16px; }
   .map-wrap { margin: 12px 12px 0; }
@@ -686,7 +774,7 @@ const COUNTRIES = [
 ];
 
 /* ══ STATE ══ */
-let checks = {};   // { 'TR': true, ... }
+let checks = {};   // { 'TR': { checked: true, film: 'Parasite', stars: 5 }, ... }
 let activeFilter = 'all';
 let sb = null;
 let demoMode = false;
@@ -705,17 +793,19 @@ function initSB() {
 async function loadChecks() {
   if (demoMode) return;
   try {
-    const { data, error } = await sb.from('country_checks').select('country_code,checked');
+    const { data, error } = await sb.from('country_checks').select('country_code,checked,film,stars');
     if (error) throw error;
-    if (data) data.forEach(r => { if (r.checked) checks[r.country_code] = true; });
+    if (data) data.forEach(r => {
+      if (r.checked) checks[r.country_code] = { checked: true, film: r.film || '', stars: r.stars || 0 };
+    });
   } catch(e) { console.warn('loadChecks:', e); }
 }
 
-async function saveCheck(code, val) {
+async function saveCheck(code, data) {
   if (demoMode) return;
   try {
-    if (val) {
-      await sb.from('country_checks').upsert({ country_code: code, checked: true });
+    if (data) {
+      await sb.from('country_checks').upsert({ country_code: code, checked: true, film: data.film || '', stars: data.stars || 0 });
     } else {
       await sb.from('country_checks').delete().eq('country_code', code);
     }
@@ -728,7 +818,7 @@ function subscribeRT() {
     const r = p.new || p.old;
     if (!r) return;
     if (p.eventType === 'DELETE') delete checks[r.country_code];
-    else checks[r.country_code] = r.checked;
+    else checks[r.country_code] = { checked: true, film: r.film || '', stars: r.stars || 0 };
     refreshItem(r.country_code);
     refreshMapPath(r.country_code);
     updateStats();
@@ -737,12 +827,22 @@ function subscribeRT() {
 
 /* ══ TOGGLE ══ */
 function toggle(code) {
-  if (checks[code]) delete checks[code];
-  else checks[code] = true;
-  saveCheck(code, !!checks[code]);
-  refreshItem(code);
-  refreshMapPath(code);
-  updateStats();
+  if (checks[code]) {
+    delete checks[code];
+    saveCheck(code, null);
+    refreshItem(code);
+    refreshMapPath(code);
+    updateStats();
+  } else {
+    checks[code] = { checked: true, film: '', stars: 0 };
+    saveCheck(code, checks[code]);
+    refreshItem(code);
+    refreshMapPath(code);
+    updateStats();
+    // film panelini aç
+    const info = document.querySelector(`.film-info[data-code="${code}"]`);
+    if (info) { info.classList.add('open'); info.querySelector('.film-input').focus(); }
+  }
 }
 
 /* ══ RENDER ══ */
@@ -766,19 +866,54 @@ function renderList() {
 
     const grid = grp.querySelector('.country-grid');
     list.forEach(c => {
+      const d = checks[c.code];
+      const isChecked = !!d;
+      const filmName = d ? d.film : '';
+      const stars = d ? d.stars : 0;
+
+      // wrapper div (item + film panel birlikte)
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;flex-direction:column;';
+      wrap.dataset.wrapCode = c.code;
+      wrap.dataset.wrapRegion = c.r;
+
+      // country item
       const el = document.createElement('div');
-      el.className = 'country-item' + (checks[c.code] ? ' is-checked' : '');
+      el.className = 'country-item' + (isChecked ? ' is-checked' : '');
       el.dataset.code = c.code;
       el.dataset.name = c.name.toLocaleLowerCase('tr');
       el.dataset.region = c.r;
       el.innerHTML = `
         <span class="flag">${c.flag}</span>
         <span class="country-name">${c.name}</span>
-        <div class="check-box">${checks[c.code] ? '✓' : ''}</div>`;
+        <div class="film-badge${filmName ? ' visible' : ''}" data-badge="${c.code}">
+          <span class="badge-stars">${'⭐'.repeat(stars)}</span><span class="badge-text">${filmName ? filmName.substring(0,16) : ''}</span>
+        </div>
+        <div class="check-box">${isChecked ? '✓' : ''}</div>`;
       el.onclick = () => toggle(c.code);
       el.addEventListener('mouseenter', () => { el.classList.add('map-hl'); hlMap(c.code, true); });
       el.addEventListener('mouseleave', () => { el.classList.remove('map-hl'); hlMap(c.code, false); });
-      grid.appendChild(el);
+
+      // film panel
+      const panel = document.createElement('div');
+      panel.className = 'film-info' + (isChecked && filmName !== undefined ? '' : '');
+      panel.dataset.code = c.code;
+      panel.innerHTML = `
+        <input class="film-input" type="text" placeholder="🎬 Film adını yaz…" value="${filmName || ''}" maxlength="80">
+        <div class="stars-row">
+          <span>Puan:</span>
+          ${[1,2,3,4,5].map(i => `<button class="star-btn${stars>=i?' lit':''}" data-star="${i}" onclick="setStar('${c.code}',${i},this)">⭐</button>`).join('')}
+        </div>
+        <button class="film-save-btn" onclick="saveFilm('${c.code}')">Kaydet</button>`;
+
+      // kaydet butonu Enter ile de çalışsın
+      panel.querySelector('.film-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') saveFilm(c.code);
+      });
+
+      wrap.appendChild(el);
+      wrap.appendChild(panel);
+      grid.appendChild(wrap);
     });
   });
 }
@@ -786,9 +921,56 @@ function renderList() {
 function refreshItem(code) {
   const el = document.querySelector(`.country-item[data-code="${code}"]`);
   if (!el) return;
-  const on = !!checks[code];
+  const d = checks[code];
+  const on = !!d;
   el.classList.toggle('is-checked', on);
   el.querySelector('.check-box').textContent = on ? '✓' : '';
+  // panel
+  const panel = document.querySelector(`.film-info[data-code="${code}"]`);
+  if (panel) {
+    if (!on) { panel.classList.remove('open'); }
+    // badge
+    const badge = el.querySelector('.film-badge');
+    if (badge) {
+      const film = d ? d.film : '';
+      const starsCount = d ? d.stars : 0;
+      badge.classList.toggle('visible', !!(film));
+      const bt = badge.querySelector('.badge-text');
+      if (bt) bt.textContent = film ? film.substring(0,16) : '';
+      const bs = badge.querySelector('.badge-stars');
+      if (bs) bs.textContent = '⭐'.repeat(starsCount);
+    }
+  }
+}
+
+/* ══ STAR & FILM SAVE ══ */
+function setStar(code, val, btn) {
+  // update visual
+  const row = btn.closest('.stars-row');
+  row.querySelectorAll('.star-btn').forEach((b,i) => b.classList.toggle('lit', i < val));
+  // store temp
+  if (!checks[code]) checks[code] = { checked: true, film: '', stars: 0 };
+  checks[code].stars = val;
+}
+
+function saveFilm(code) {
+  if (!checks[code]) return;
+  const panel = document.querySelector(`.film-info[data-code="${code}"]`);
+  if (!panel) return;
+  const film = panel.querySelector('.film-input').value.trim();
+  const stars = checks[code].stars || 0;
+  checks[code].film = film;
+  saveCheck(code, checks[code]);
+  // badge güncelle
+  const badge = document.querySelector(`.country-item[data-code="${code}"] .film-badge`);
+  if (badge) {
+    badge.classList.toggle('visible', !!film);
+    const bt = badge.querySelector('.badge-text');
+    if (bt) bt.textContent = film ? film.substring(0,16) : '';
+    const bs = badge.querySelector('.badge-stars');
+    if (bs) bs.textContent = '⭐'.repeat(stars);
+  }
+  panel.classList.remove('open');
 }
 
 function refreshMapPath(code) {
@@ -813,17 +995,21 @@ function setFilter(f, el) {
 function doFilter() {
   const q = document.getElementById('search').value.toLocaleLowerCase('tr');
   const region = document.getElementById('rsel').value;
-  document.querySelectorAll('.country-item').forEach(el => {
-    const on = !!checks[el.dataset.code];
+  // wrap div'leri filtrele
+  document.querySelectorAll('[data-wrap-code]').forEach(wrap => {
+    const code = wrap.dataset.wrapCode;
+    const r = wrap.dataset.wrapRegion;
+    const nameEl = wrap.querySelector('.country-name');
+    const name = nameEl ? nameEl.textContent.toLocaleLowerCase('tr') : '';
+    const on = !!checks[code];
     let show = true;
-    if (q && !el.dataset.name.includes(q)) show = false;
-    if (region && el.dataset.region !== region) show = false;
+    if (q && !name.includes(q)) show = false;
+    if (region && r !== region) show = false;
     if (activeFilter === 'checked' && !on) show = false;
-    if (activeFilter === 'unchecked' && on) show = false;
-    el.style.display = show ? '' : 'none';
+    wrap.style.display = show ? '' : 'none';
   });
   document.querySelectorAll('.region-group').forEach(g => {
-    const any = [...g.querySelectorAll('.country-item')].some(i => i.style.display !== 'none');
+    const any = [...g.querySelectorAll('[data-wrap-code]')].some(i => i.style.display !== 'none');
     g.style.display = any ? '' : 'none';
   });
 }
