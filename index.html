@@ -3,163 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>197 Ülke 197 Film</title>
+<title>195 Ülke 195 Film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root {
-  --bg:       #f0f4ff;
-  --surface:  #ffffff;
-  --surface2: #f7f9ff;
-  --border:   #dde5f8;
-  --text:     #1a1f3c;
-  --muted:    #7b87b8;
-  --accent:   #4f6ef7;
-  --accent2:  #f7564f;
-  --green:    #22c97a;
-  --yellow:   #fbbf24;
-  --purple:   #a855f7;
-  --checked-fill: #4f6ef7;
-  --checked-bg:   #eef1ff;
-  --checked-border: #b8c3fb;
-  --hover-map: #fbbf24;
-  --font: 'Nunito', sans-serif;
-  --radius: 16px;
-  --shadow: 0 2px 16px #4f6ef718;
+  /* ── CORE ── */
+  --bg:        #0d0d0f;
+  --surface:   #141418;
+  --surface2:  #1c1c22;
+  --surface3:  #242430;
+  --border:    #2a2a38;
+  --border2:   #3a3a50;
+
+  /* ── TEXT ── */
+  --text:      #f0eee8;
+  --text2:     #a09e9a;
+  --text3:     #5a5870;
+
+  /* ── NEON ACCENTS ── */
+  --neon:      #e8ff47;   /* ana neon sarı */
+  --neon-dim:  #e8ff4722;
+
+  /* ── BÖLGE RENKLERİ ── */
+  --col-afrika:    #ff6b35;   /* yanık turuncu */
+  --col-asya:      #ff3366;   /* neon kırmızı */
+  --col-avrupa:    #4facfe;   /* elektrik mavi */
+  --col-kuzey:     #43e97b;   /* neon yeşil */
+  --col-guney:     #f9ca24;   /* altın sarı */
+  --col-okyanusya: #a78bfa;   /* lila */
+
+  /* ── MAP ── */
+  --map-land:      #1e1e2e;
+  --map-hover:     #e8ff47;
+  --map-checked:   #e8ff47;
+
+  --font-display: 'Playfair Display', serif;
+  --font-body:    'Inter', sans-serif;
+  --radius:       12px;
 }
 
 html { scroll-behavior: smooth; }
+
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font);
-  font-size: 15px;
+  font-family: var(--font-body);
+  font-size: 14px;
   min-height: 100vh;
+  /* subtle noise texture */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 /* ── CONFIG BANNER ── */
 #config-banner {
-  background: #fff8ed;
-  border-bottom: 2px solid #fde68a;
-  padding: 10px 24px;
-  font-size: 13px;
-  color: #92400e;
-  display: flex;
-  gap: 8px;
-  align-items: center;
+  background: #2a1800;
+  border-bottom: 1px solid #f9ca2440;
+  padding: 8px 24px;
+  font-size: 12px;
+  color: #f9ca24;
+  display: flex; gap: 8px; align-items: center;
 }
 #config-banner.hidden { display: none; }
 
-/* ── HEADER ── */
-header {
-  background: var(--surface);
-  border-bottom: 2px solid var(--border);
-  padding: 18px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  box-shadow: var(--shadow);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.logo {
-  font-size: 24px;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.logo-icon {
-  width: 38px; height: 38px;
-  background: linear-gradient(135deg, #4f6ef7, #a855f7);
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
-}
-.logo-text { color: var(--text); }
-.logo-text span { color: var(--accent); }
-
-/* stats pills */
-.header-stats { display: flex; gap: 10px; flex-wrap: wrap; }
-.stat-pill {
-  background: var(--checked-bg);
-  border: 2px solid var(--checked-border);
-  border-radius: 40px;
-  padding: 6px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.stat-pill .num { font-size: 18px; color: var(--accent2); }
-.online-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-  animation: blink 2s infinite;
-  display: inline-block;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-/* ── MAP SECTION ── */
-.map-wrap {
-  margin: 24px 24px 0;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
+/* ══════════════════════════════════
+   HERO HEADER
+══════════════════════════════════ */
+.hero {
   position: relative;
+  padding: 40px 40px 0;
+  overflow: hidden;
+}
+
+/* büyük arka plan yazı */
+.hero-bg-text {
+  position: absolute;
+  top: -10px; left: -10px;
+  font-family: var(--font-display);
+  font-size: clamp(80px, 14vw, 180px);
+  font-weight: 900;
+  font-style: italic;
+  color: transparent;
+  -webkit-text-stroke: 1px #ffffff08;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -4px;
+}
+
+.hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title-block {}
+
+.hero-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--neon);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hero-eyebrow::before {
+  content: '';
+  display: block;
+  width: 24px; height: 1px;
+  background: var(--neon);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 68px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -2px;
+  color: var(--text);
+}
+.hero-title em {
+  font-style: italic;
+  color: var(--neon);
+  display: block;
+}
+
+/* stats block */
+.hero-stats {
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+}
+.stat-block {
+  padding: 16px 24px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  position: relative;
+}
+.stat-block:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.stat-block:last-child  { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--neon);
+  line-height: 1;
+  display: block;
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-top: 4px;
+  display: block;
+}
+.online-pip {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+  animation: pip 2s infinite;
+}
+@keyframes pip { 0%,100%{opacity:1}50%{opacity:.2} }
+
+/* ══════════════════════════════════
+   MAP
+══════════════════════════════════ */
+.map-section {
+  margin: 32px 40px 0;
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* sinema şeridi dekor */
+.film-strip {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--neon) 0, var(--neon) 14px,
+    transparent 14px, transparent 20px
+  );
+  opacity: 0.6;
 }
 
 #world-map {
   width: 100%;
-  height: 420px;
+  height: 400px;
   display: block;
 }
 
 #world-map path {
-  fill: #dde8ff;
-  stroke: #ffffff;
+  fill: var(--map-land);
+  stroke: #0d0d0f;
   stroke-width: 0.5;
   transition: fill .2s, filter .2s;
   cursor: pointer;
 }
 #world-map path.hover-hl {
-  fill: var(--hover-map);
-  filter: drop-shadow(0 0 10px #fbbf2466);
+  fill: var(--map-hover);
+  filter: drop-shadow(0 0 12px #e8ff4766);
 }
 #world-map path.is-checked {
-  fill: var(--checked-fill);
-  filter: drop-shadow(0 0 7px #4f6ef755);
+  fill: var(--neon);
+  filter: drop-shadow(0 0 8px #e8ff4755);
 }
 #world-map path.is-checked.hover-hl {
-  fill: #2a4cdd;
-  filter: drop-shadow(0 0 12px #4f6ef799);
+  fill: #fff;
+  filter: drop-shadow(0 0 16px #e8ff47cc);
 }
 
 /* map tooltip */
 #map-tip {
   position: absolute;
-  top: 14px; left: 50%;
+  top: 18px; left: 50%;
   transform: translateX(-50%);
-  background: var(--text);
-  color: #fff;
-  border-radius: 10px;
-  padding: 6px 14px;
-  font-size: 13px;
+  background: var(--neon);
+  color: #0d0d0f;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 12px;
   font-weight: 700;
+  font-family: var(--font-body);
+  letter-spacing: 0.5px;
   pointer-events: none;
   opacity: 0;
   transition: opacity .15s;
@@ -167,33 +253,13 @@ header {
   z-index: 10;
 }
 
-/* map legend */
-.map-legend {
-  position: absolute;
-  bottom: 14px; right: 18px;
-  display: flex; gap: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-}
-.leg { display: flex; align-items: center; gap: 5px; }
-.leg-dot { width: 10px; height: 10px; border-radius: 3px; }
-
-/* map decor dots */
-.map-decor {
-  position: absolute;
-  top: 16px; left: 20px;
-  display: flex; gap: 6px;
-}
-.decor-dot {
-  width: 10px; height: 10px; border-radius: 50%;
-}
-
-/* ── CONTROLS ── */
+/* ══════════════════════════════════
+   CONTROLS BAR
+══════════════════════════════════ */
 .controls {
   display: flex;
   gap: 10px;
-  padding: 20px 24px 10px;
+  padding: 24px 40px 16px;
   flex-wrap: wrap;
   align-items: center;
 }
@@ -201,173 +267,307 @@ header {
 .search-wrap {
   position: relative;
   flex: 1;
-  min-width: 200px;
-  max-width: 380px;
+  min-width: 180px;
+  max-width: 320px;
 }
 .search-icon {
   position: absolute;
-  left: 14px; top: 50%;
+  left: 13px; top: 50%;
   transform: translateY(-50%);
-  font-size: 16px;
+  font-size: 14px;
   pointer-events: none;
+  color: var(--text3);
 }
 #search {
   width: 100%;
   background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 14px;
-  padding: 10px 14px 10px 42px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px 9px 36px;
   color: var(--text);
-  font-family: var(--font);
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: 13px;
   outline: none;
   transition: border-color .2s, box-shadow .2s;
 }
 #search:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px #4f6ef722;
+  border-color: var(--neon);
+  box-shadow: 0 0 0 2px var(--neon-dim);
 }
-#search::placeholder { color: var(--muted); font-weight: 400; }
+#search::placeholder { color: var(--text3); }
 
-.filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-btns { display: flex; gap: 6px; }
 .fbtn {
-  padding: 8px 16px;
-  border-radius: 40px;
-  border: 2px solid var(--border);
-  background: var(--surface);
-  color: var(--muted);
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
+  letter-spacing: 0.3px;
   transition: all .2s;
 }
-.fbtn:hover { border-color: var(--accent); color: var(--accent); }
+.fbtn:hover { border-color: var(--neon); color: var(--neon); }
 .fbtn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-  box-shadow: 0 3px 12px #4f6ef740;
+  background: var(--neon);
+  border-color: var(--neon);
+  color: #0d0d0f;
+  font-weight: 700;
 }
 
 .region-sel {
   background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 14px;
-  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
   color: var(--text);
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: 700;
+  font-family: var(--font-body);
+  font-size: 12px;
   outline: none;
   cursor: pointer;
   transition: border-color .2s;
 }
-.region-sel:focus { border-color: var(--accent); }
+.region-sel:focus { border-color: var(--neon); }
+.region-sel option { background: var(--surface2); }
 
-/* ── LIST ── */
-.list-section { padding: 10px 24px 56px; }
+/* ══════════════════════════════════
+   COUNTRY LIST
+══════════════════════════════════ */
+.list-section { padding: 8px 40px 64px; }
 
-.region-group { margin-bottom: 28px; }
+.region-group { margin-bottom: 40px; }
 
+/* bölge başlık bandı */
 .region-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 4px 12px;
-  border-bottom: 2px solid var(--border);
-  margin-bottom: 10px;
+  gap: 14px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  position: relative;
 }
-.region-emoji { font-size: 20px; }
+.region-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--region-color) 0%, transparent 60%);
+  opacity: 0.5;
+}
+
+.region-color-bar {
+  width: 3px;
+  height: 28px;
+  border-radius: 2px;
+  background: var(--region-color);
+  box-shadow: 0 0 10px var(--region-color);
+  flex-shrink: 0;
+}
+.region-emoji { font-size: 18px; }
 .region-title {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
 }
 .region-count {
   margin-left: auto;
-  background: var(--border);
-  color: var(--muted);
   font-size: 11px;
-  font-weight: 800;
-  padding: 2px 9px;
+  font-weight: 600;
+  color: var(--region-color);
+  background: color-mix(in srgb, var(--region-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--region-color) 25%, transparent);
+  padding: 2px 10px;
   border-radius: 20px;
+  letter-spacing: 0.5px;
 }
 
 .country-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 4px;
 }
 
+/* ── COUNTRY ITEM ── */
 .country-item {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 10px;
   cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
   transition: background .15s, border-color .15s, transform .1s;
-  border: 2px solid transparent;
-  background: var(--surface);
   user-select: none;
   position: relative;
 }
 .country-item:hover {
+  background: var(--surface2);
   border-color: var(--border);
-  background: #f0f4ff;
   transform: translateY(-1px);
-  box-shadow: 0 3px 12px #4f6ef715;
 }
 .country-item:active { transform: translateY(0); }
 
-/* checked state */
+/* checked */
 .country-item.is-checked {
-  background: var(--checked-bg);
-  border-color: var(--checked-border);
+  background: var(--neon-dim);
+  border-color: #e8ff4730;
 }
 .country-item.is-checked .country-name {
-  color: var(--accent);
-  font-weight: 700;
+  color: var(--neon);
+  font-weight: 600;
 }
 .country-item.is-checked .check-box {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-  box-shadow: 0 2px 10px #4f6ef760;
+  background: var(--neon);
+  border-color: var(--neon);
+  color: #0d0d0f;
+  box-shadow: 0 0 10px #e8ff4766;
 }
 
-/* map-hover glow on list item */
+/* map hover highlight */
 .country-item.map-hl {
-  background: #fffbeb;
-  border-color: #fbbf24;
+  background: #e8ff4710;
+  border-color: #e8ff4430;
 }
 
-.flag { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.flag {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 3px #0005);
+}
 
 .country-name {
   flex: 1;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text2);
   transition: color .15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .check-box {
-  width: 22px; height: 22px;
-  border-radius: 7px;
-  border: 2px solid var(--border);
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  border: 1px solid var(--border2);
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 800;
   color: transparent;
   transition: all .2s;
   flex-shrink: 0;
   background: var(--surface2);
 }
+
+/* film badge */
+.film-badge {
+  display: none;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--neon);
+  background: var(--neon-dim);
+  border: 1px solid #e8ff4730;
+  border-radius: 5px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+.film-badge.visible { display: flex; }
+
+/* ── FILM PANEL ── */
+.film-info {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  margin-top: -2px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  position: relative;
+}
+.film-info::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 14px; right: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--neon-dim), transparent);
+}
+.film-info.open { display: flex; }
+
+.film-input {
+  width: 100%;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s;
+}
+.film-input:focus { border-color: var(--neon); box-shadow: 0 0 0 2px var(--neon-dim); }
+.film-input::placeholder { color: var(--text3); }
+
+.stars-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.stars-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+.star-btn {
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+  transition: transform .1s;
+  filter: grayscale(1) brightness(0.4);
+  display: block;
+}
+.star-btn:hover, .star-btn.lit {
+  filter: none;
+  transform: scale(1.2);
+}
+
+.film-save-btn {
+  align-self: flex-end;
+  padding: 7px 20px;
+  background: var(--neon);
+  color: #0d0d0f;
+  border: none;
+  border-radius: 7px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity .2s, transform .1s;
+}
+.film-save-btn:hover { opacity: .85; transform: translateY(-1px); }
+.film-save-btn:active { transform: translateY(0); }
 
 /* ── LOADING ── */
 #loading {
@@ -378,117 +578,60 @@ header {
   align-items: center;
   justify-content: center;
   z-index: 999;
-  gap: 18px;
-  transition: opacity .4s;
+  gap: 20px;
+  transition: opacity .5s;
 }
 #loading.fade-out { opacity: 0; pointer-events: none; }
-.loader-globe { font-size: 52px; animation: spin 1.2s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+.loader-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 900;
+  font-style: italic;
+  color: var(--text);
+  letter-spacing: -1px;
+}
+.loader-title span { color: var(--neon); }
+
+.loader-bar-wrap {
+  width: 200px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.loader-bar {
+  height: 100%;
+  background: var(--neon);
+  border-radius: 2px;
+  animation: bar 1.4s ease-in-out infinite;
+}
+@keyframes bar {
+  0% { width: 0%; margin-left: 0; }
+  50% { width: 60%; margin-left: 20%; }
+  100% { width: 0%; margin-left: 100%; }
+}
 .loader-label {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
 }
 
 /* scrollbar */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
-/* ── FILM INFO (inline under item) ── */
-.film-info {
-  display: none;
-  padding: 8px 12px 10px 44px;
-  margin-top: -4px;
-  background: var(--checked-bg);
-  border: 2px solid var(--checked-border);
-  border-top: none;
-  border-radius: 0 0 14px 14px;
-  gap: 8px;
-  flex-direction: column;
-}
-.film-info.open { display: flex; }
-
-.film-input {
-  width: 100%;
-  border: 2px solid var(--checked-border);
-  border-radius: 10px;
-  padding: 7px 12px;
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--surface);
-  outline: none;
-  transition: border-color .2s;
-}
-.film-input:focus { border-color: var(--accent); }
-.film-input::placeholder { color: var(--muted); font-weight: 400; }
-
-.stars-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.stars-row span {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  margin-right: 4px;
-}
-.star-btn {
-  font-size: 22px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0 1px;
-  line-height: 1;
-  transition: transform .1s;
-  filter: grayscale(1) opacity(.35);
-}
-.star-btn:hover, .star-btn.lit { filter: none; transform: scale(1.15); }
-.star-btn.lit { filter: none; }
-
-.film-save-btn {
-  align-self: flex-end;
-  padding: 6px 18px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: opacity .2s;
-}
-.film-save-btn:hover { opacity: .85; }
-
-/* saved badge on country item */
-.film-badge {
-  display: none;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-  background: #e0e7ff;
-  border-radius: 8px;
-  padding: 2px 7px;
-  white-space: nowrap;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.film-badge.visible { display: flex; }
-.film-badge .bstar { font-size: 10px; }
-
-@media(max-width:600px){
-  header { padding: 14px 16px; }
-  .map-wrap { margin: 12px 12px 0; }
+@media(max-width:700px){
+  .hero { padding: 24px 20px 0; }
+  .hero-bg-text { display: none; }
+  .map-section { margin: 20px 16px 0; }
   #world-map { height: 220px; }
-  .controls { padding: 12px 12px 4px; }
-  .list-section { padding: 6px 12px 40px; }
+  .controls { padding: 16px 20px 8px; }
+  .list-section { padding: 8px 16px 48px; }
 }
 </style>
 </head>
@@ -496,53 +639,57 @@ header {
 
 <!-- LOADING -->
 <div id="loading">
-  <div class="loader-globe">🌍</div>
-  <div class="loader-label">Harita yükleniyor…</div>
+  <div class="loader-title">195 Ülke <span>195 Film</span></div>
+  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+  <div class="loader-label">Harita yükleniyor</div>
 </div>
 
 <!-- CONFIG BANNER -->
 <div id="config-banner">
-  ⚠️ Supabase yapılandırılmamış — <strong style="margin:0 3px">SUPABASE_URL</strong> ve <strong style="margin:0 3px">SUPABASE_KEY</strong> değerlerini dosyanın üstüne girin. Şu an <strong>demo modunda</strong> çalışıyor.
+  ⚠ Supabase bağlı değil — demo modunda çalışıyor.
 </div>
 
-<!-- HEADER -->
-<header>
-  <div class="logo">
-    <div class="logo-icon">🌍</div>
-    <div class="logo-text">197 Ülke<span> 197 Film</span></div>
-  </div>
-  <div class="header-stats">
-    <div class="stat-pill">
-      <span class="online-dot"></span>
-      İşaretlenen: <span class="num" id="cnt-checked">0</span>
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <div class="hero-bg-text">CINEMA</div>
+  <div class="hero-top">
+    <div class="hero-title-block">
+      <div class="hero-eyebrow">Dünya Sineması Takip Listesi</div>
+      <h1 class="hero-title">
+        195 Ülke
+        <em>195 Film</em>
+      </h1>
     </div>
-    <div class="stat-pill" style="color:var(--muted);border-color:var(--border);background:var(--surface2)">
-      Toplam: <span class="num" style="color:var(--muted)" id="cnt-total">0</span>
+    <div class="hero-stats">
+      <div class="stat-block">
+        <span class="online-pip"></span>
+        <span class="stat-num" id="cnt-checked">0</span>
+        <span class="stat-label">İzlendi</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-num" id="cnt-total">0</span>
+        <span class="stat-label">Toplam</span>
+      </div>
     </div>
   </div>
-</header>
+</div>
 
-<!-- MAP -->
-<div class="map-wrap">
-  <div class="map-decor">
-    <div class="decor-dot" style="background:#4f6ef7"></div>
-    <div class="decor-dot" style="background:#a855f7"></div>
-    <div class="decor-dot" style="background:#22c97a"></div>
-  </div>
+<!-- ══ MAP ══ -->
+<div class="map-section">
+  <div class="film-strip"></div>
   <div id="map-tip"></div>
   <svg id="world-map" viewBox="0 0 2000 1001" preserveAspectRatio="xMidYMid meet"></svg>
-
 </div>
 
-<!-- CONTROLS -->
+<!-- ══ CONTROLS ══ -->
 <div class="controls">
   <div class="search-wrap">
-    <span class="search-icon">🔍</span>
+    <span class="search-icon">⌕</span>
     <input type="text" id="search" placeholder="Ülke ara…" oninput="doFilter()">
   </div>
   <div class="filter-btns">
     <button class="fbtn active" onclick="setFilter('all',this)">Tümü</button>
-    <button class="fbtn" onclick="setFilter('checked',this)">✓ İzlediklerim</button>
+    <button class="fbtn" onclick="setFilter('checked',this)">✦ İzlediklerim</button>
   </div>
   <select class="region-sel" id="rsel" onchange="doFilter()">
     <option value="">Tüm bölgeler</option>
@@ -555,7 +702,7 @@ header {
   </select>
 </div>
 
-<!-- LIST -->
+<!-- ══ LIST ══ -->
 <div class="list-section" id="list-section"></div>
 
 <script>
@@ -563,7 +710,26 @@ header {
 const SUPABASE_URL = 'https://xbtztgutcknxjsusfmwl.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_jShKJYgYQom8dw7EBo0cFQ_T-7RrRrl';
 
-/* ══ DATA ══ */
+/* ══ REGION COLORS ══ */
+const REGION_COLORS = {
+  'Afrika':        '#ff6b35',
+  'Asya':          '#ff3366',
+  'Avrupa':        '#4facfe',
+  'Kuzey Amerika': '#43e97b',
+  'Güney Amerika': '#f9ca24',
+  'Okyanusya':     '#a78bfa',
+};
+
+/* ══ MAP COLORS per region ══ */
+const REGION_MAP_COLORS = {
+  'Afrika':        '#ff6b3555',
+  'Asya':          '#ff336655',
+  'Avrupa':        '#4facfe55',
+  'Kuzey Amerika': '#43e97b55',
+  'Güney Amerika': '#f9ca2455',
+  'Okyanusya':     '#a78bfa55',
+};
+
 const REGIONS = {
   'Afrika':        '🌍',
   'Asya':          '🌏',
@@ -774,12 +940,16 @@ const COUNTRIES = [
 ];
 
 /* ══ STATE ══ */
-let checks = {};   // { 'TR': { checked: true, film: 'Parasite', stars: 5 }, ... }
+let checks = {};
 let activeFilter = 'all';
 let sb = null;
 let demoMode = false;
 
 const NUM_TO_A2 = {4:'AF',8:'AL',12:'DZ',24:'AO',32:'AR',36:'AU',40:'AT',31:'AZ',50:'BD',112:'BY',56:'BE',84:'BZ',204:'BJ',64:'BT',68:'BO',70:'BA',72:'BW',76:'BR',100:'BG',854:'BF',108:'BI',116:'KH',120:'CM',124:'CA',140:'CF',148:'TD',152:'CL',170:'CO',174:'KM',178:'CG',180:'CD',188:'CR',191:'HR',192:'CU',196:'CY',203:'CZ',208:'DK',262:'DJ',212:'DM',214:'DO',218:'EC',818:'EG',222:'SV',226:'GQ',232:'ER',233:'EE',231:'ET',242:'FJ',246:'FI',250:'FR',266:'GA',270:'GM',268:'GE',276:'DE',288:'GH',300:'GR',308:'GD',320:'GT',324:'GN',624:'GW',328:'GY',332:'HT',340:'HN',348:'HU',356:'IN',360:'ID',364:'IR',368:'IQ',372:'IE',376:'IL',380:'IT',388:'JM',392:'JP',400:'JO',398:'KZ',404:'KE',296:'KI',408:'KP',410:'KR',414:'KW',417:'KG',418:'LA',428:'LV',422:'LB',426:'LS',430:'LR',434:'LY',440:'LT',442:'LU',450:'MG',454:'MW',458:'MY',462:'MV',466:'ML',478:'MR',480:'MU',484:'MX',498:'MD',492:'MC',496:'MN',504:'MA',508:'MZ',516:'NA',524:'NP',528:'NL',554:'NZ',558:'NI',562:'NE',566:'NG',578:'NO',512:'OM',586:'PK',591:'PA',598:'PG',600:'PY',604:'PE',608:'PH',616:'PL',620:'PT',634:'QA',642:'RO',643:'RU',646:'RW',659:'KN',662:'LC',670:'VC',882:'WS',674:'SM',678:'ST',682:'SA',686:'SN',690:'SC',694:'SL',703:'SK',705:'SI',706:'SO',710:'ZA',724:'ES',144:'LK',729:'SD',740:'SR',752:'SE',756:'CH',760:'SY',762:'TJ',834:'TZ',764:'TH',768:'TG',776:'TO',780:'TT',788:'TN',800:'UG',804:'UA',784:'AE',826:'GB',840:'US',858:'UY',860:'UZ',548:'VU',862:'VE',704:'VN',887:'YE',894:'ZM',716:'ZW',807:'MK',499:'ME',688:'RS',51:'AM',792:'TR',156:'CN'};
+
+/* country → region lookup */
+const CODE_TO_REGION = {};
+COUNTRIES.forEach(c => CODE_TO_REGION[c.code] = c.r);
 
 /* ══ SUPABASE ══ */
 function initSB() {
@@ -839,7 +1009,6 @@ function toggle(code) {
     refreshItem(code);
     refreshMapPath(code);
     updateStats();
-    // film panelini aç
     const info = document.querySelector(`.film-info[data-code="${code}"]`);
     if (info) { info.classList.add('open'); info.querySelector('.film-input').focus(); }
   }
@@ -852,14 +1021,17 @@ function renderList() {
   const regionOrder = ['Afrika','Asya','Avrupa','Kuzey Amerika','Güney Amerika','Okyanusya'];
   regionOrder.forEach(region => {
     const list = COUNTRIES.filter(c => c.r === region);
+    const color = REGION_COLORS[region];
     const grp = document.createElement('div');
     grp.className = 'region-group';
     grp.id = 'grp-' + region;
+    grp.style.setProperty('--region-color', color);
     grp.innerHTML = `
       <div class="region-header">
+        <div class="region-color-bar"></div>
         <span class="region-emoji">${REGIONS[region]}</span>
         <span class="region-title">${region}</span>
-        <span class="region-count" id="rc-${region}">${list.length}</span>
+        <span class="region-count">${list.length} ülke</span>
       </div>
       <div class="country-grid" id="grid-${region}"></div>`;
     sec.appendChild(grp);
@@ -871,13 +1043,11 @@ function renderList() {
       const filmName = d ? d.film : '';
       const stars = d ? d.stars : 0;
 
-      // wrapper div (item + film panel birlikte)
       const wrap = document.createElement('div');
       wrap.style.cssText = 'display:flex;flex-direction:column;';
       wrap.dataset.wrapCode = c.code;
       wrap.dataset.wrapRegion = c.r;
 
-      // country item
       const el = document.createElement('div');
       el.className = 'country-item' + (isChecked ? ' is-checked' : '');
       el.dataset.code = c.code;
@@ -894,19 +1064,17 @@ function renderList() {
       el.addEventListener('mouseenter', () => { el.classList.add('map-hl'); hlMap(c.code, true); });
       el.addEventListener('mouseleave', () => { el.classList.remove('map-hl'); hlMap(c.code, false); });
 
-      // film panel
       const panel = document.createElement('div');
-      panel.className = 'film-info' + (isChecked && filmName !== undefined ? '' : '');
+      panel.className = 'film-info';
       panel.dataset.code = c.code;
       panel.innerHTML = `
         <input class="film-input" type="text" placeholder="🎬 Film adını yaz…" value="${filmName || ''}" maxlength="80">
         <div class="stars-row">
-          <span>Puan:</span>
+          <span class="stars-label">Puan</span>
           ${[1,2,3,4,5].map(i => `<button class="star-btn${stars>=i?' lit':''}" data-star="${i}" onclick="setStar('${c.code}',${i},this)">⭐</button>`).join('')}
         </div>
         <button class="film-save-btn" onclick="saveFilm('${c.code}')">Kaydet</button>`;
 
-      // kaydet butonu Enter ile de çalışsın
       panel.querySelector('.film-input').addEventListener('keydown', e => {
         if (e.key === 'Enter') saveFilm(c.code);
       });
@@ -925,30 +1093,24 @@ function refreshItem(code) {
   const on = !!d;
   el.classList.toggle('is-checked', on);
   el.querySelector('.check-box').textContent = on ? '✓' : '';
-  // panel
   const panel = document.querySelector(`.film-info[data-code="${code}"]`);
-  if (panel) {
-    if (!on) { panel.classList.remove('open'); }
-    // badge
-    const badge = el.querySelector('.film-badge');
-    if (badge) {
-      const film = d ? d.film : '';
-      const starsCount = d ? d.stars : 0;
-      badge.classList.toggle('visible', !!(film));
-      const bt = badge.querySelector('.badge-text');
-      if (bt) bt.textContent = film ? film.substring(0,16) : '';
-      const bs = badge.querySelector('.badge-stars');
-      if (bs) bs.textContent = '⭐'.repeat(starsCount);
-    }
+  if (panel && !on) panel.classList.remove('open');
+  const badge = el.querySelector('.film-badge');
+  if (badge) {
+    const film = d ? d.film : '';
+    const starsCount = d ? d.stars : 0;
+    badge.classList.toggle('visible', !!film);
+    const bt = badge.querySelector('.badge-text');
+    if (bt) bt.textContent = film ? film.substring(0,16) : '';
+    const bs = badge.querySelector('.badge-stars');
+    if (bs) bs.textContent = '⭐'.repeat(starsCount);
   }
 }
 
 /* ══ STAR & FILM SAVE ══ */
 function setStar(code, val, btn) {
-  // update visual
   const row = btn.closest('.stars-row');
   row.querySelectorAll('.star-btn').forEach((b,i) => b.classList.toggle('lit', i < val));
-  // store temp
   if (!checks[code]) checks[code] = { checked: true, film: '', stars: 0 };
   checks[code].stars = val;
 }
@@ -961,7 +1123,6 @@ function saveFilm(code) {
   const stars = checks[code].stars || 0;
   checks[code].film = film;
   saveCheck(code, checks[code]);
-  // badge güncelle
   const badge = document.querySelector(`.country-item[data-code="${code}"] .film-badge`);
   if (badge) {
     badge.classList.toggle('visible', !!film);
@@ -974,8 +1135,14 @@ function saveFilm(code) {
 }
 
 function refreshMapPath(code) {
+  const region = CODE_TO_REGION[code];
+  const color = region ? REGION_COLORS[region] : '#e8ff47';
   document.querySelectorAll(`#world-map [data-code="${code}"]`).forEach(p => {
-    p.classList.toggle('is-checked', !!checks[code]);
+    const on = !!checks[code];
+    p.classList.toggle('is-checked', on);
+    p.style.fill = on ? color : '';
+    if (on) p.style.filter = `drop-shadow(0 0 8px ${color}88)`;
+    else p.style.filter = '';
   });
 }
 
@@ -995,7 +1162,6 @@ function setFilter(f, el) {
 function doFilter() {
   const q = document.getElementById('search').value.toLocaleLowerCase('tr');
   const region = document.getElementById('rsel').value;
-  // wrap div'leri filtrele
   document.querySelectorAll('[data-wrap-code]').forEach(wrap => {
     const code = wrap.dataset.wrapCode;
     const r = wrap.dataset.wrapRegion;
@@ -1022,7 +1188,7 @@ function hlMap(code, on) {
   const tip = document.getElementById('map-tip');
   if (on) {
     const c = COUNTRIES.find(x => x.code === code);
-    tip.textContent = c ? `${c.flag} ${c.name}` : code;
+    tip.textContent = c ? `${c.flag}  ${c.name}` : code;
     tip.style.opacity = '1';
   } else {
     tip.style.opacity = '0';
@@ -1058,14 +1224,22 @@ function renderMap(topo) {
     .join('path')
     .attr('d', path)
     .attr('data-code', d => NUM_TO_A2[+d.id] || '')
-    .classed('is-checked', d => !!checks[NUM_TO_A2[+d.id]])
+    .each(function(d) {
+      const code = NUM_TO_A2[+d.id];
+      if (code && checks[code]) {
+        const region = CODE_TO_REGION[code];
+        const color = REGION_COLORS[region] || '#e8ff47';
+        this.style.fill = color;
+        this.style.filter = `drop-shadow(0 0 8px ${color}88)`;
+      }
+    })
     .on('mouseenter', function(e, d) {
       const code = NUM_TO_A2[+d.id];
       if (!code) return;
       d3.select(this).classed('hover-hl', true);
       const c = COUNTRIES.find(x => x.code === code);
       const tip = document.getElementById('map-tip');
-      tip.textContent = c ? `${c.flag} ${c.name}` : code;
+      tip.textContent = c ? `${c.flag}  ${c.name}` : code;
       tip.style.opacity = '1';
       const li = document.querySelector(`.country-item[data-code="${code}"]`);
       if (li) li.classList.add('map-hl');
