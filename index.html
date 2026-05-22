@@ -312,6 +312,15 @@ body {
 #world-map path.is-checked.hover-hl {
   filter: drop-shadow(0 0 16px currentColor) brightness(1.3);
 }
+#world-map path.is-skipped {
+  fill: #1a0a24 !important;
+  filter: none !important;
+  opacity: 0.38;
+}
+#world-map path.is-skipped.hover-hl {
+  opacity: 0.55;
+  fill: #2d1040 !important;
+}
 
 #map-tip {
   position: absolute;
@@ -509,6 +518,42 @@ body {
   border-color: #ffb7c530;
 }
 
+/* skipped */
+.country-item.is-skipped {
+  background: #1a0a2488;
+  border-color: #3d1060;
+  opacity: 0.45;
+}
+.country-item.is-skipped .country-name {
+  color: var(--text3);
+  text-decoration: line-through;
+  text-decoration-color: #5a3070;
+}
+.country-item.is-skipped .skip-box {
+  background: #7c1d4a;
+  border-color: transparent;
+  color: #ffb7c5;
+  box-shadow: 0 0 8px #7c1d4a88;
+}
+
+.skip-box {
+  width: 20px; height: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: transparent;
+  transition: all .2s;
+  flex-shrink: 0;
+  background: var(--surface2);
+  cursor: pointer;
+}
+.skip-box:hover:not(.active) {
+  border-color: #7c1d4a;
+  color: #7c1d4a;
+}
+
 .flag { font-size: 19px; line-height: 1; flex-shrink: 0; }
 
 .country-name {
@@ -691,6 +736,26 @@ body {
   100%{ width:0%; margin-left:100%; }
 }
 
+/* ── CİVCİV ── */
+#chick-wrap {
+  position: absolute;
+  bottom: 14px;
+  left: 18px;
+  z-index: 5;
+  pointer-events: none;
+  font-size: 28px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px #00000044);
+  animation: chick-bounce 1.8s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+@keyframes chick-bounce {
+  0%,100% { transform: translateY(0) rotate(-4deg) scaleX(1); }
+  25%      { transform: translateY(-5px) rotate(2deg) scaleX(1); }
+  50%      { transform: translateY(0) rotate(-2deg) scaleX(1); }
+  75%      { transform: translateY(-3px) rotate(3deg) scaleX(-1); }
+}
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -852,6 +917,7 @@ body {
   <div class="map-top-bar"></div>
   <div id="map-tip"></div>
   <svg id="world-map" viewBox="0 0 2000 1001" preserveAspectRatio="xMidYMid meet"></svg>
+  <div id="chick-wrap" title="Civciv!">🐣</div>
 </div>
 
 <!-- ══ CONTROLS ══ -->
@@ -1256,7 +1322,7 @@ async function loadChecks() {
     const { data, error } = await sb.from('country_checks').select('country_code,checked,film,stars');
     if (error) throw error;
     if (data) data.forEach(r => {
-      if (r.checked) checks[r.country_code] = { checked: true, film: r.film || '', stars: r.stars || 0 };
+      if (r.checked || r.skipped) checks[r.country_code] = { checked: !!r.checked, skipped: !!r.skipped, film: r.film || '', stars: r.stars || 0 };
     });
   } catch(e) { console.warn('loadChecks:', e); }
 }
@@ -1265,7 +1331,7 @@ async function saveCheck(code, data) {
   if (demoMode) return;
   try {
     if (data) {
-      await sb.from('country_checks').upsert({ country_code: code, checked: true, film: data.film || '', stars: data.stars || 0 });
+      await sb.from('country_checks').upsert({ country_code: code, checked: !!data.checked, skipped: !!data.skipped, film: data.film || '', stars: data.stars || 0 });
     } else {
       await sb.from('country_checks').delete().eq('country_code', code);
     }
@@ -1278,7 +1344,7 @@ function subscribeRT() {
     const r = p.new || p.old;
     if (!r) return;
     if (p.eventType === 'DELETE') delete checks[r.country_code];
-    else checks[r.country_code] = { checked: true, film: r.film || '', stars: r.stars || 0 };
+    else checks[r.country_code] = { checked: !!r.checked, skipped: !!r.skipped, film: r.film || '', stars: r.stars || 0 };
     refreshItem(r.country_code);
     refreshMapPath(r.country_code);
     updateStats();
@@ -1287,21 +1353,59 @@ function subscribeRT() {
 
 /* ══ TOGGLE ══ */
 function toggle(code) {
-  if (checks[code]) {
-    delete checks[code];
-    saveCheck(code, null);
-    refreshItem(code);
-    refreshMapPath(code);
-    updateStats();
-  } else {
-    checks[code] = { checked: true, film: '', stars: 0 };
+  const d = checks[code];
+  if (d && d.checked) {
+    // tiki kaldır, skipped ise koru
+    if (d.skipped) {
+      checks[code] = { checked: false, skipped: true, film: '', stars: 0 };
+      saveCheck(code, checks[code]);
+    } else {
+      delete checks[code];
+      saveCheck(code, null);
+    }
+  } else if (d && d.skipped) {
+    // skipped durumdayken tıklandı → checked yap, skipped kaldır
+    checks[code] = { checked: true, skipped: false, film: d.film || '', stars: d.stars || 0 };
     saveCheck(code, checks[code]);
-    refreshItem(code);
-    refreshMapPath(code);
-    updateStats();
+    const info = document.querySelector(`.film-info[data-code="${code}"]`);
+    if (info && !d.film) { info.classList.add('open'); info.querySelector('.film-input').focus(); }
+  } else {
+    checks[code] = { checked: true, skipped: false, film: '', stars: 0 };
+    saveCheck(code, checks[code]);
     const info = document.querySelector(`.film-info[data-code="${code}"]`);
     if (info) { info.classList.add('open'); info.querySelector('.film-input').focus(); }
   }
+  refreshItem(code);
+  refreshMapPath(code);
+  updateStats();
+}
+
+function skip(code, e) {
+  e.stopPropagation();
+  const d = checks[code];
+  if (d && d.skipped) {
+    // zaten skipped → kaldır
+    if (d.checked) {
+      checks[code] = { checked: true, skipped: false, film: d.film || '', stars: d.stars || 0 };
+    } else {
+      delete checks[code];
+      saveCheck(code, null);
+      refreshItem(code); refreshMapPath(code); updateStats(); return;
+    }
+  } else {
+    // skip ekle
+    checks[code] = { checked: !!(d && d.checked), skipped: true, film: d ? d.film : '', stars: d ? d.stars : 0 };
+    // eğer checked ise iptal et
+    checks[code].checked = false;
+    if (d && d.checked) {
+      const panel = document.querySelector(`.film-info[data-code="${code}"]`);
+      if (panel) panel.classList.remove('open');
+    }
+  }
+  saveCheck(code, checks[code]);
+  refreshItem(code);
+  refreshMapPath(code);
+  updateStats();
 }
 
 /* ══ RENDER ══ */
@@ -1329,7 +1433,7 @@ function renderList() {
     const grid = grp.querySelector('.country-grid');
     list.forEach(c => {
       const d = checks[c.code];
-      const isChecked = !!d;
+      const isChecked = !!(d && d.checked);
       const filmName = d ? d.film : '';
       const stars = d ? d.stars : 0;
 
@@ -1339,7 +1443,8 @@ function renderList() {
       wrap.dataset.wrapRegion = c.r;
 
       const el = document.createElement('div');
-      el.className = 'country-item' + (isChecked ? ' is-checked' : '');
+      const isSkipped = !!(d && d.skipped);
+      el.className = 'country-item' + (isChecked ? ' is-checked' : '') + (isSkipped ? ' is-skipped' : '');
       el.dataset.code = c.code;
       el.dataset.name = c.name.toLocaleLowerCase('tr');
       el.dataset.region = c.r;
@@ -1349,6 +1454,7 @@ function renderList() {
         <div class="film-badge${filmName ? ' visible' : ''}" data-badge="${c.code}">
           <span class="badge-stars">${'⭐'.repeat(stars)}</span><span class="badge-text">${filmName ? filmName.substring(0,16) : ''}</span>
         </div>
+        <div class="skip-box${isSkipped ? ' active' : ''}" onclick="skip('${c.code}',event)" title="Pas geç">✕</div>
         <div class="check-box">${isChecked ? '✓' : ''}</div>`;
       el.onclick = () => toggle(c.code);
       el.addEventListener('mouseenter', () => { el.classList.add('map-hl'); hlMap(c.code, true); });
@@ -1380,16 +1486,20 @@ function refreshItem(code) {
   const el = document.querySelector(`.country-item[data-code="${code}"]`);
   if (!el) return;
   const d = checks[code];
-  const on = !!d;
-  el.classList.toggle('is-checked', on);
-  el.querySelector('.check-box').textContent = on ? '✓' : '';
+  const isChecked = !!(d && d.checked);
+  const isSkipped = !!(d && d.skipped);
+  el.classList.toggle('is-checked', isChecked);
+  el.classList.toggle('is-skipped', isSkipped);
+  el.querySelector('.check-box').textContent = isChecked ? '✓' : '';
+  const skipBox = el.querySelector('.skip-box');
+  if (skipBox) skipBox.classList.toggle('active', isSkipped);
   const panel = document.querySelector(`.film-info[data-code="${code}"]`);
-  if (panel && !on) panel.classList.remove('open');
+  if (panel && !isChecked) panel.classList.remove('open');
   const badge = el.querySelector('.film-badge');
   if (badge) {
     const film = d ? d.film : '';
     const starsCount = d ? d.stars : 0;
-    badge.classList.toggle('visible', !!film);
+    badge.classList.toggle('visible', !!(film && isChecked));
     const bt = badge.querySelector('.badge-text');
     if (bt) bt.textContent = film ? film.substring(0,16) : '';
     const bs = badge.querySelector('.badge-stars');
@@ -1426,15 +1536,20 @@ function saveFilm(code) {
 function refreshMapPath(code) {
   const region = CODE_TO_REGION[code];
   const color = region ? REGION_COLORS[region] : '#ffb7c5';
+  const d = checks[code];
+  const isChecked = !!(d && d.checked);
+  const isSkipped = !!(d && d.skipped);
   document.querySelectorAll(`#world-map [data-code="${code}"]`).forEach(p => {
-    const on = !!checks[code];
-    p.style.fill = on ? color : '';
-    p.style.filter = on ? `drop-shadow(0 0 8px ${color}88)` : '';
+    p.classList.toggle('is-skipped', isSkipped);
+    p.style.fill = isChecked ? color : '';
+    p.style.filter = isChecked ? `drop-shadow(0 0 8px ${color}88)` : '';
+    p.style.opacity = isSkipped ? '0.38' : '';
   });
 }
 
 function updateStats() {
-  document.getElementById('cnt-checked').textContent = Object.keys(checks).length;
+  const checkedCount = Object.values(checks).filter(d => d.checked).length;
+  document.getElementById('cnt-checked').textContent = checkedCount;
   document.getElementById('cnt-total').textContent = COUNTRIES.length;
 }
 
@@ -1453,11 +1568,12 @@ function doFilter() {
     const r = wrap.dataset.wrapRegion;
     const nameEl = wrap.querySelector('.country-name');
     const name = nameEl ? nameEl.textContent.toLocaleLowerCase('tr') : '';
-    const on = !!checks[code];
     let show = true;
     if (q && !name.includes(q)) show = false;
     if (region && r !== region) show = false;
-    if (activeFilter === 'checked' && !on) show = false;
+    const isChecked = !!(checks[code] && checks[code].checked);
+    const isSkipped = !!(checks[code] && checks[code].skipped);
+    if (activeFilter === 'checked' && !isChecked) show = false;
     wrap.style.display = show ? '' : 'none';
   });
   document.querySelectorAll('.region-group').forEach(g => {
@@ -1510,11 +1626,17 @@ function renderMap(topo) {
     .attr('data-code', d => NUM_TO_A2[+d.id] || '')
     .each(function(d) {
       const code = NUM_TO_A2[+d.id];
-      if (code && checks[code]) {
+      if (!code) return;
+      const entry = checks[code];
+      if (entry && entry.checked) {
         const region = CODE_TO_REGION[code];
         const color = REGION_COLORS[region] || '#ffb7c5';
         this.style.fill = color;
         this.style.filter = `drop-shadow(0 0 8px ${color}88)`;
+      }
+      if (entry && entry.skipped) {
+        this.classList.add('is-skipped');
+        this.style.opacity = '0.38';
       }
     })
     .on('mouseenter', function(e, d) {
@@ -1566,7 +1688,7 @@ init();
 <!-- LOADING (after script so canvas runs first) -->
 <div id="loading">
   <div class="loader-petals">🌸 🌺 🌼</div>
-  <div class="loader-title">195 Ülke 195 Film</div>
+  <div class="loader-title">197 Ülke 197 Film</div>
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
 </div>
 
