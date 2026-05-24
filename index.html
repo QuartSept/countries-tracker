@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>195 Ülke 195 Film</title>
+<title>197 Ülke 197 Film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -909,6 +909,205 @@ body {
   80%     { transform: scaleX(var(--sx,1)) translateX(3px) rotate(3deg); }
 }
 
+/* ══════════════════════════════
+   SLOT / ÖNERI MODALİ
+══════════════════════════════ */
+#suggest-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid #e879a060;
+  background: linear-gradient(135deg, #e879a018, #c084fc18);
+  color: var(--sakura);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+#suggest-btn:hover {
+  background: linear-gradient(135deg, #e879a030, #c084fc30);
+  border-color: var(--sakura2);
+  box-shadow: 0 0 16px #e879a030;
+  transform: translateY(-1px);
+}
+#suggest-btn .btn-icon { font-size: 16px; }
+
+/* overlay */
+#slot-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #0d0d0fcc;
+  backdrop-filter: blur(6px);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+#slot-overlay.open { display: flex; }
+
+/* modal kutu */
+#slot-modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 24px;
+  padding: 36px 40px 32px;
+  width: min(440px, 90vw);
+  position: relative;
+  box-shadow: 0 24px 80px #00000066, 0 0 0 1px #e879a020;
+  text-align: center;
+  overflow: hidden;
+}
+#slot-modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--sakura2), var(--wisteria), var(--sakura2));
+}
+
+.slot-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 24px;
+}
+
+/* slot penceresi */
+.slot-window {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.slot-window::before,
+.slot-window::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 28px;
+  z-index: 2;
+  pointer-events: none;
+}
+.slot-window::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--surface2), transparent);
+}
+.slot-window::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--surface2), transparent);
+}
+
+#slot-flag {
+  font-size: 48px;
+  line-height: 1;
+  transition: none;
+  filter: drop-shadow(0 4px 12px #00000055);
+}
+#slot-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+#slot-region {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* sonuç kartı (durduğunda) */
+.slot-result-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  opacity: 0;
+  transition: opacity .4s;
+  pointer-events: none;
+}
+.slot-result-glow.on { opacity: 1; }
+
+/* butonlar */
+.slot-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.slot-action-btn {
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.slot-action-btn:hover { border-color: var(--sakura2); color: var(--sakura); }
+.slot-action-btn.primary {
+  background: linear-gradient(135deg, var(--sakura2), var(--wisteria));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 16px #e879a044;
+}
+.slot-action-btn.primary:hover { opacity: .88; transform: translateY(-1px); }
+
+#slot-close {
+  position: absolute;
+  top: 14px; right: 16px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  transition: color .2s;
+}
+#slot-close:hover { color: var(--text); }
+
+/* spinning sınıfı */
+#slot-flag.spinning,
+#slot-name.spinning,
+#slot-region.spinning {
+  animation: slot-spin 0.08s linear infinite;
+}
+@keyframes slot-spin {
+  0%   { transform: translateY(-6px); opacity: 0.6; }
+  50%  { transform: translateY(0);    opacity: 1;   }
+  100% { transform: translateY(6px);  opacity: 0.6; }
+}
+
+/* landing animasyonu */
+@keyframes slot-land {
+  0%   { transform: scale(1.15); }
+  40%  { transform: scale(0.95); }
+  70%  { transform: scale(1.05); }
+  100% { transform: scale(1);    }
+}
+.slot-landed { animation: slot-land .5s ease-out forwards; }
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -1041,8 +1240,8 @@ body {
         Dünya Sineması Takip Listesi
       </div>
       <h1 class="hero-title">
-        195 Ülke<br>
-        <span class="line2">195 Film</span>
+        197 Ülke<br>
+        <span class="line2">197 Film</span>
       </h1>
       <p class="hero-sub">Her ülke bir sinema, her film bir yolculuk. Dünya sinemasını birlikte keşfet.</p>
     </div>
@@ -1089,6 +1288,7 @@ body {
     <button class="fbtn active" onclick="setFilter('all',this)">Tümü</button>
     <button class="fbtn" onclick="setFilter('checked',this)">🌸 İzlediklerim</button>
   </div>
+  <button id="suggest-btn" onclick="openSlot()"><span class="btn-icon">🎲</span> Bu gece ne izleyelim?</button>
   <select class="region-sel" id="rsel" onchange="doFilter()">
     <option value="">Tüm bölgeler</option>
     <option>Afrika</option>
@@ -1098,6 +1298,25 @@ body {
     <option>Güney Amerika</option>
     <option>Okyanusya</option>
   </select>
+</div>
+
+<!-- ══ SLOT MODAL ══ -->
+<div id="slot-overlay" onclick="closeSlotOutside(event)">
+  <div id="slot-modal">
+    <button id="slot-close" onclick="closeSlot()">✕</button>
+    <div class="slot-title">🎬 Bu Gece Ne İzleyelim?</div>
+    <div class="slot-window">
+      <div class="slot-result-glow" id="slot-glow"></div>
+      <div id="slot-flag">🎬</div>
+      <div id="slot-name">—</div>
+      <div id="slot-region"></div>
+    </div>
+    <div class="slot-actions">
+      <button class="slot-action-btn" onclick="spinSlot()">🔀 Tekrar</button>
+      <button class="slot-action-btn" onclick="scrollToResult()">📍 Listede Göster</button>
+      <button class="slot-action-btn primary" onclick="markAndClose()">✓ İzledim!</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ LIST ══ -->
@@ -1302,6 +1521,150 @@ body {
 
   wait(1200, start);
 })();
+
+
+/* ══ SLOT MAKİNESİ ══ */
+let slotResult = null;
+let slotTimer  = null;
+
+function openSlot() {
+  document.getElementById('slot-overlay').classList.add('open');
+  slotResult = null;
+  resetSlotDisplay();
+  setTimeout(spinSlot, 200);
+}
+
+function closeSlot() {
+  document.getElementById('slot-overlay').classList.remove('open');
+  clearTimeout(slotTimer);
+  stopSpinning();
+}
+
+function closeSlotOutside(e) {
+  if (e.target === document.getElementById('slot-overlay')) closeSlot();
+}
+
+function resetSlotDisplay() {
+  document.getElementById('slot-flag').textContent   = '🎬';
+  document.getElementById('slot-name').textContent   = '—';
+  document.getElementById('slot-region').textContent = '';
+  document.getElementById('slot-glow').style.background = '';
+  document.getElementById('slot-glow').classList.remove('on');
+}
+
+function getPool() {
+  // İzlenmemiş ve pas geçilmemiş ülkeler
+  return COUNTRIES.filter(c => {
+    const d = checks[c.code];
+    return !d || (!d.checked && !d.skipped);
+  });
+}
+
+const REGION_COLORS_MAP = {
+  'Afrika': '#fb923c', 'Asya': '#f472b6', 'Avrupa': '#818cf8',
+  'Kuzey Amerika': '#34d399', 'Güney Amerika': '#fbbf24', 'Okyanusya': '#c084fc'
+};
+
+function spinSlot() {
+  const pool = getPool();
+  if (pool.length === 0) {
+    document.getElementById('slot-flag').textContent = '🏆';
+    document.getElementById('slot-name').textContent = 'Hepsini izledin!';
+    document.getElementById('slot-region').textContent = 'Tebrikler!';
+    return;
+  }
+
+  slotResult = null;
+  const flagEl   = document.getElementById('slot-flag');
+  const nameEl   = document.getElementById('slot-name');
+  const regionEl = document.getElementById('slot-region');
+  const glowEl   = document.getElementById('slot-glow');
+
+  glowEl.classList.remove('on');
+  flagEl.classList.remove('slot-landed');
+  nameEl.classList.remove('slot-landed');
+
+  // Spinning başlat
+  flagEl.classList.add('spinning');
+  nameEl.classList.add('spinning');
+  regionEl.classList.add('spinning');
+
+  let elapsed   = 0;
+  const total   = 2400;  // toplam spin süresi ms
+  let interval  = 60;    // başlangıç hızı ms
+
+  function tick() {
+    // Rastgele ülke göster
+    const rand = pool[Math.floor(Math.random() * pool.length)];
+    flagEl.textContent   = rand.flag;
+    nameEl.textContent   = rand.name;
+    regionEl.textContent = rand.r;
+
+    elapsed += interval;
+
+    // Yavaşlama eğrisi
+    const progress = elapsed / total;
+    if (progress > 0.55) interval = 60  + (progress - 0.55) * 700;
+    if (progress > 0.80) interval = 160 + (progress - 0.80) * 1200;
+
+    if (elapsed < total) {
+      slotTimer = setTimeout(tick, interval);
+    } else {
+      // Dur — son seçim
+      const winner = pool[Math.floor(Math.random() * pool.length)];
+      slotResult = winner;
+
+      flagEl.classList.remove('spinning');
+      nameEl.classList.remove('spinning');
+      regionEl.classList.remove('spinning');
+
+      flagEl.textContent   = winner.flag;
+      nameEl.textContent   = winner.name;
+      regionEl.textContent = winner.r;
+
+      // Landing animasyonu
+      flagEl.classList.add('slot-landed');
+      nameEl.classList.add('slot-landed');
+
+      // Bölge rengiyle parla
+      const color = REGION_COLORS_MAP[winner.r] || '#e879a0';
+      glowEl.style.background = `radial-gradient(ellipse at center, ${color}22 0%, transparent 70%)`;
+      glowEl.style.boxShadow  = `inset 0 0 30px ${color}22`;
+      glowEl.classList.add('on');
+    }
+  }
+
+  tick();
+}
+
+function stopSpinning() {
+  const els = ['slot-flag','slot-name','slot-region'];
+  els.forEach(id => document.getElementById(id).classList.remove('spinning','slot-landed'));
+}
+
+function scrollToResult() {
+  if (!slotResult) return;
+  closeSlot();
+  setTimeout(() => {
+    const el = document.querySelector(`.country-item[data-code="${slotResult.code}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.transition = 'box-shadow .3s';
+      el.style.boxShadow  = `0 0 0 3px ${REGION_COLORS_MAP[slotResult.r] || '#e879a0'}88`;
+      setTimeout(() => el.style.boxShadow = '', 2200);
+    }
+  }, 350);
+}
+
+function markAndClose() {
+  if (!slotResult) return;
+  closeSlot();
+  setTimeout(() => {
+    if (!checks[slotResult.code] || !checks[slotResult.code].checked) {
+      toggle(slotResult.code);
+    }
+  }, 300);
+}
 
 /* ══ SUPABASE CONFIG ══ */
 const SUPABASE_URL = 'https://xbtztgutcknxjsusfmwl.supabase.co';
@@ -1927,7 +2290,7 @@ init();
 <!-- LOADING (after script so canvas runs first) -->
 <div id="loading">
   <div class="loader-petals">🌸 🌺 🌼</div>
-  <div class="loader-title">195 Ülke 195 Film</div>
+  <div class="loader-title">197 Ülke 197 Film</div>
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
 </div>
 
