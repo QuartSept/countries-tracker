@@ -826,6 +826,10 @@ body {
   font-family: var(--font-body);
   font-weight: 500;
   letter-spacing: 0.2px;
+  z-index: 10;
+  max-width: 220px;
+  white-space: normal;
+  line-height: 1.4;
 }
 .speech.on { opacity: 1; }
 #hearts {
@@ -1108,6 +1112,51 @@ body {
 }
 .slot-landed { animation: slot-land .5s ease-out forwards; }
 
+/* ══ SENARYO GEÇİŞ BUTONU ══ */
+.scene-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 28px 0 16px;
+}
+.scene-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: all .3s;
+  cursor: pointer;
+  border: none;
+}
+.scene-dot.active {
+  background: linear-gradient(135deg, var(--sakura2), var(--wisteria));
+  box-shadow: 0 0 8px #e879a066;
+  width: 22px;
+  border-radius: 4px;
+}
+.scene-switch-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text3);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.scene-switch-btn:hover {
+  border-color: var(--sakura2);
+  color: var(--sakura);
+  box-shadow: 0 0 12px #e879a022;
+}
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -1298,6 +1347,11 @@ body {
     <option>Güney Amerika</option>
     <option>Okyanusya</option>
   </select>
+  <div class="scene-switch-btn" onclick="switchScene((currentScene+1)%2)" title="Senaryo değiştir" style="cursor:pointer">
+    <span class="scene-dot active" id="dot-0" onclick="event.stopPropagation();switchScene(0)" title="Senaryo 1" style="cursor:pointer"></span>
+    <span class="scene-dot"        id="dot-1" onclick="event.stopPropagation();switchScene(1)" title="Senaryo 2" style="cursor:pointer"></span>
+    <span>➜</span> Senaryo
+  </div>
 </div>
 
 <!-- ══ SLOT MODAL ══ -->
@@ -1321,6 +1375,8 @@ body {
 
 <!-- ══ LIST ══ -->
 <div class="list-section" id="list-section"></div>
+
+
 
 </div><!-- /app -->
 
@@ -1465,8 +1521,13 @@ body {
   }
 
   function say(el, posX, text, dur) {
-    el.style.left = posX + 'px';
-    el.textContent = text;
+    // Önce sıfırla (geçiş sonrası temiz başlasın)
+    el.classList.remove('on');
+    el.style.opacity = '0';
+    void el.offsetWidth; // reflow
+    el.style.left    = posX + 'px';
+    el.textContent   = text;
+    el.style.opacity = '';
     el.classList.add('on');
     setTimeout(() => el.classList.remove('on'), dur || 2000);
   }
@@ -1498,28 +1559,94 @@ body {
 
 
 
-  function start() {
-    const devX   = 28;
-    const chickX = 72;
-
-    setPos(dev,   devX);
-    setPos(chick, chickX);
-    setAnim(dev,   'kf-bob', 1, 2000);
-    setAnim(chick, 'kf-bob', 1, 1800);
+  // ── Aktif timer'ları iptal etmek için ──
+  let storyTimers = [];
+  function storyWait(ms, fn) {
+    const id = setTimeout(fn, ms);
+    storyTimers.push(id);
+    return id;
+  }
+  function clearStory() {
+    storyTimers.forEach(id => clearTimeout(id));
+    storyTimers = [];
+    // baloncukları tamamen sıfırla
+    [devSp, chSp].forEach(el => {
+      el.classList.remove('on');
+      el.style.opacity   = '0';
+      el.textContent     = '';
+    });
     hearts.style.opacity = '0';
+  }
 
-    wait(1000,  () => say(chSp,  chickX, 'Filmi buldum ben 🐣', 2800));
-    wait(4200,  () => say(devSp, devX,   'Hangi ülke? 🤨',      2600));
-    wait(7200,  () => say(chSp,  chickX, 'İran 😊',             2600));
-    wait(10200, () => {
+  // ══ SENARYO 1 — İran yine mi ══
+  function scene0() {
+    const devX = 28, chickX = 72;
+    setPos(dev, devX); setPos(chick, chickX);
+    setAnim(dev,   'kf-bob',  1, 2000);
+    setAnim(chick, 'kf-bob',  1, 1800);
+
+    storyWait(1000,  () => say(chSp,  chickX, 'Filmi buldum ben 🐣', 2800));
+    storyWait(4200,  () => say(devSp, devX,   'Hangi ülke? 🤨',      2600));
+    storyWait(7200,  () => say(chSp,  chickX, 'İran 😊',             2600));
+    storyWait(10200, () => {
       setAnim(dev, 'kf-shake', 1, 600);
       say(devSp, devX, 'yine mi 😑', 2600);
     });
-    // 30 saniye sessizlik, sonra tekrar
-    wait(13000 + 30000, start);
+    // Diyalog bitti → idle
+    storyWait(13000, () => {
+      setAnim(dev,   'kf-bob', 1, 2200);
+      setAnim(chick, 'kf-bob', 1, 1900);
+    });
+    storyWait(13000 + 30000, () => { if (currentScene === 0) scene0(); });
   }
 
-  wait(1200, start);
+  // ══ SENARYO 2 — Can'ı öldürdüm ══
+  function scene1() {
+    const devX = 28, chickX = 72;
+    setPos(dev, devX); setPos(chick, chickX);
+    setAnim(dev,   'kf-bob',   1, 2200);
+    setAnim(chick, 'kf-bob',   1, 1900);
+
+    storyWait(1000,  () => say(devSp, devX,   "Can'ı öldürdüm kitap bitti.", 3200));
+    storyWait(4600,  () => {
+      setAnim(chick, 'kf-scare', 1, 500);
+      say(chSp, chickX, 'Neeee!!!!', 2400);
+    });
+    storyWait(7400,  () => say(devSp, devX,   '...', 2000));
+    storyWait(9800,  () => {
+      setAnim(chick, 'kf-shake', 1, 300);
+      say(chSp, chickX, '🕯️✨🐥📖💫🔮 CAN GERİ GELLLL 🌀🪄⚡', 3800);
+    });
+    storyWait(14000, () => {
+      setAnim(dev, 'kf-look', 1, 700);
+      say(devSp, devX, 'Ne yapıyorsun?? 🤨', 2600);
+    });
+    storyWait(17000, () => {
+      setAnim(chick, 'kf-happy', 1, 600);
+      say(chSp, chickX, "Can'ı geri getirmen için büyü yapıyorum 🕯️✨ Dirilt şu çocuğu 😭🔮", 5000);
+    });
+    // Diyalog bitti → idle
+    storyWait(22000, () => {
+      setAnim(dev,   'kf-bob', 1, 2400);
+      setAnim(chick, 'kf-bob', 1, 2000);
+    });
+    storyWait(22000 + 30000, () => { if (currentScene === 1) scene1(); });
+  }
+
+  // ── Geçiş ──
+  window.currentScene = 0;
+  const scenes = [scene0, scene1];
+
+  window.switchScene = function(idx) {
+    clearStory();
+    currentScene = idx;
+    document.querySelectorAll('.scene-dot').forEach((d,i) => d.classList.toggle('active', i === idx));
+    setAnim(dev,   'kf-bob', 1, 2000);
+    setAnim(chick, 'kf-bob', 1, 1800);
+    setTimeout(() => scenes[idx](), 400);
+  };
+
+  storyWait(1200, scene0);
 })();
 
 
