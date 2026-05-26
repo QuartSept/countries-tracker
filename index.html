@@ -851,6 +851,11 @@ body {
   0%,100%{ transform: translateY(0) rotate(-3deg) scaleX(var(--sx,1)); }
   50%    { transform: translateY(-6px) rotate(3deg) scaleX(var(--sx,1)); }
 }
+@keyframes kf-listen {
+  0%,100%{ transform: translateY(0) rotate(-2deg) scaleX(var(--sx,1)); }
+  30%    { transform: translateY(-4px) rotate(1.5deg) scaleX(var(--sx,1)); }
+  60%    { transform: translateY(-2px) rotate(-1deg) scaleX(var(--sx,1)); }
+}
 @keyframes kf-hop {
   0%    { transform: translateY(0) scaleX(var(--sx,1)) rotate(0deg); }
   25%   { transform: translateY(-10px) scaleX(var(--sx,1)) rotate(-5deg); }
@@ -1157,6 +1162,150 @@ body {
   box-shadow: 0 0 12px #e879a022;
 }
 
+/* ══════════════════════════════
+   THE LAST OF US — EASTER EGG
+══════════════════════════════ */
+
+#ff-svg {
+  width: 68px;
+  height: 62px;
+  display: block;
+  filter: drop-shadow(0 0 6px #d4a017aa);
+}
+#ff-text {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #d4a017;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .4s;
+  font-family: var(--font-body);
+}
+
+/* Nota animasyonu — sol üst */
+#music-notes {
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  z-index: 4;
+  pointer-events: none;
+  width: 60px;
+  height: 80px;
+  overflow: visible;
+}
+.mnote {
+  position: absolute;
+  font-size: 13px;
+  opacity: 0;
+  color: #d4a017;
+  filter: drop-shadow(0 0 4px #d4a01788);
+  animation: note-float var(--dur, 4s) var(--delay, 0s) ease-in infinite;
+  left: var(--x, 10px);
+  bottom: 48px;
+  z-index: 1;
+}
+@keyframes note-float {
+  0%   { opacity: 0;   transform: translateY(0)    rotate(var(--r1, -5deg))  scale(0.7); }
+  15%  { opacity: 0.9; transform: translateY(-8px)  rotate(var(--r2,  5deg))  scale(1);   }
+  50%  { opacity: 0.6; transform: translateY(-28px) rotate(var(--r1, -8deg))  scale(0.9); }
+  85%  { opacity: 0.2; transform: translateY(-52px) rotate(var(--r2, 10deg))  scale(0.8); }
+  100% { opacity: 0;   transform: translateY(-70px) rotate(var(--r1, -5deg))  scale(0.6); }
+}
+
+/* "Fireflies were here" — haritanın içine yedirme */
+#ff-watermark {
+  position: absolute;
+  bottom: 62px;
+  right: 82px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #d4a017;
+  opacity: 0.09;
+  font-family: var(--font-body);
+  pointer-events: none;
+  z-index: 3;
+  transform: rotate(-1.5deg);
+  transition: opacity .5s;
+}
+.map-section:hover #ff-watermark {
+  opacity: 0.22;
+}
+
+/* ══ MÜZİK BUTONU ══ */
+#music-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 200;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid #d4a01760;
+  background: #1a0e1fdd;
+  backdrop-filter: blur(8px);
+  color: #d4a017;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .3s;
+  box-shadow: 0 4px 20px #00000055;
+}
+#music-btn:hover {
+  border-color: #d4a017;
+  box-shadow: 0 0 18px #d4a01744, 0 4px 20px #00000055;
+  transform: scale(1.08);
+}
+#music-btn.playing {
+  border-color: #d4a017;
+  box-shadow: 0 0 14px #d4a01766;
+  animation: music-pulse 2s ease-in-out infinite;
+}
+@keyframes music-pulse {
+  0%,100% { box-shadow: 0 0 10px #d4a01744, 0 4px 20px #00000055; }
+  50%      { box-shadow: 0 0 24px #d4a01788, 0 4px 20px #00000055; }
+}
+#music-btn .music-tooltip {
+  position: absolute;
+  right: 54px;
+  bottom: 50%;
+  transform: translateY(50%);
+  background: #1a0e1fee;
+  border: 1px solid #d4a01740;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: #d4a017;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  letter-spacing: 0.5px;
+}
+#music-btn:hover .music-tooltip { opacity: 1; }
+
+/* gizli YouTube iframe */
+#yt-frame {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -1194,9 +1343,9 @@ body {
     <!-- Sol üst dal -->
     <path d="M238 230 C218 210 196 192 178 174 C160 156 145 140 132 122" stroke-width="5" fill="none"/>
     <!-- Sağ üst dal -->
-    <path d="M240 215 C258 195 276 176 292 158 C308 140 322 124 334 108" stroke-width="5" fill="none"/>
+    <path d="M240 215 C258  276 176 292 158 C308 140 322 124 334 108" stroke-width="5" fill="none"/>
     <!-- Merkez üst -->
-    <path d="M240 220 C238 195 237 168 236 142 C235 116 235 90 236 65" stroke-width="6" fill="none"/>
+    <path d="M240 220 C238  237 168 236 142 C235 116 235 90 236 65" stroke-width="6" fill="none"/>
     <!-- Sol ince dallar -->
     <path d="M145 295 C128 278 114 260 102 242" stroke-width="4" fill="none"/>
     <path d="M95 162 C80 148 68 132 58 115" stroke-width="3" fill="none"/>
@@ -1318,7 +1467,21 @@ body {
   <div class="map-top-bar"></div>
   <div id="map-tip"></div>
   <svg id="world-map" viewBox="0 0 2000 1001" preserveAspectRatio="xMidYMid meet"></svg>
+  <!-- Fireflies watermark -->
+  <div id="ff-watermark">Fireflies were here</div>
+  </div>
+
   <div id="story-stage">
+    <!-- Nota animasyonu — karakterlerin arkasında -->
+    <div id="music-notes" style="display:none;position:absolute;inset:0;pointer-events:none;z-index:1;">
+      <span class="mnote" style="--dur:3.8s;--delay:0s;  --x:8px; --r1:-8deg;--r2:6deg">♩</span>
+      <span class="mnote" style="--dur:4.2s;--delay:0.9s;--x:28px;--r1:5deg; --r2:-7deg">♪</span>
+      <span class="mnote" style="--dur:3.5s;--delay:1.8s;--x:16px;--r1:-4deg;--r2:9deg">𝄞</span>
+      <span class="mnote" style="--dur:4.6s;--delay:0.4s;--x:44px;--r1:7deg; --r2:-5deg">♫</span>
+      <span class="mnote" style="--dur:3.9s;--delay:2.4s;--x:36px;--r1:-6deg;--r2:4deg">♩</span>
+      <span class="mnote" style="--dur:4.3s;--delay:1.2s;--x:56px;--r1:4deg; --r2:-8deg">♪</span>
+      <span class="mnote" style="--dur:3.6s;--delay:3.0s;--x:22px;--r1:-5deg;--r2:7deg">♫</span>
+    </div>
     <div id="dev-char"   class="story-char">👨🏻‍💻</div>
     <div id="chick-char" class="story-char">🐣</div>
     <div id="dev-sp"   class="speech"></div>
@@ -1635,9 +1798,12 @@ body {
 
   // ── Geçiş ──
   window.currentScene = 0;
+  window.clearStory = clearStory;
+  window.switchScene = null; // aşağıda atanacak
   const scenes = [scene0, scene1];
 
   window.switchScene = function(idx) {
+    window.switchScene_fn = window.switchScene;
     clearStory();
     currentScene = idx;
     document.querySelectorAll('.scene-dot').forEach((d,i) => d.classList.toggle('active', i === idx));
@@ -2420,6 +2586,103 @@ init();
   <div class="loader-title">197 Ülke 197 Film</div>
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
 </div>
+
+<!-- ══ MÜZİK ══ -->
+<iframe id="yt-frame"
+  src="https://www.youtube.com/embed/-zOjVJgIVHA?enablejsapi=1&autoplay=0&loop=1&playlist=-zOjVJgIVHA"
+  allow="autoplay; encrypted-media"
+  frameborder="0">
+</iframe>
+
+<button id="music-btn" onclick="toggleMusic()" title="">
+  <span id="music-icon">🎵</span>
+  <span class="music-tooltip" id="music-tooltip">The Last of Us OST</span>
+</button>
+
+<script>
+/* ══ MÜZİK KONTROL ══ */
+let musicPlaying = false;
+let ytReady = false;
+let ytPlayer = null;
+
+// YouTube IFrame API
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player('yt-frame', {
+    events: {
+      onReady: function() { ytReady = true; },
+      onStateChange: function(e) {
+        if (e.data === YT.PlayerState.ENDED) {
+          ytPlayer.seekTo(0);
+          ytPlayer.playVideo();
+        }
+      }
+    }
+  });
+};
+
+// API yükle
+(function() {
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+})();
+
+function toggleMusic() {
+  const btn   = document.getElementById('music-btn');
+  const icon  = document.getElementById('music-icon');
+  const tip   = document.getElementById('music-tooltip');
+  const notes = document.getElementById('music-notes');
+  const dev   = document.getElementById('dev-char');
+  const chick = document.getElementById('chick-char');
+
+  if (!ytReady) {
+    tip.style.opacity = '1';
+    tip.textContent = 'Yükleniyor…';
+    setTimeout(() => tip.style.opacity = '0', 1500);
+    return;
+  }
+
+  if (musicPlaying) {
+    // ── Müziği durdur ──
+    ytPlayer.pauseVideo();
+    musicPlaying = false;
+    btn.classList.remove('playing');
+    icon.textContent = '🎵';
+    tip.textContent  = 'The Last of Us OST';
+
+    // Notaları gizle
+    notes.style.display = 'none';
+
+    // Karakterleri normal animasyona döndür + senaryoyu devam ettir
+    dev.style.animation   = '';
+    chick.style.animation = '';
+    if (window.switchScene) switchScene(window.currentScene || 0);
+
+  } else {
+    // ── Müziği başlat ──
+    ytPlayer.setVolume(35);
+    ytPlayer.playVideo();
+    musicPlaying = true;
+    btn.classList.add('playing');
+    icon.textContent = '🔇';
+    tip.textContent  = 'Müziği durdur';
+
+    // Notaları göster
+    notes.style.display = 'block';
+
+    // Senaryoyu durdur
+    if (window.clearStory) window.clearStory();
+
+    // Karakterleri ağır dinleme moduna al
+    dev.style.setProperty('--sx', '1');
+    chick.style.setProperty('--sx', '1');
+    dev.style.animation   = 'kf-listen 3.2s ease-in-out infinite';
+    chick.style.animation = 'kf-listen 2.8s ease-in-out infinite';
+    // hafif faz farkı
+    chick.style.animationDelay = '0.6s';
+  }
+}
+</script>
 
 </body>
 </html>
