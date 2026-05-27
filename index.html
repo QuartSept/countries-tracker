@@ -1306,18 +1306,174 @@ body {
   pointer-events: none;
 }
 
+/* ══ BAŞLANGIÇ TARİHİ ══ */
+.journey-dates {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+.date-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.date-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.date-value {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--sakura);
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+}
+.date-sep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding-top: 14px;
+  color: var(--text3);
+  font-size: 11px;
+}
+.date-sep-line {
+  width: 28px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border2), transparent);
+}
+.date-sep-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--border2);
+}
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
 @media(max-width:700px){
-  .hero { padding: 28px 20px 0; }
-  .petal-divider { padding: 20px 20px 0; }
-  .map-section { margin: 16px 16px 0; }
-  #world-map { height: 220px; }
-  .controls { padding: 14px 20px 8px; }
-  .list-section { padding: 8px 16px 56px; }
+  /* ══════════════════════════════
+     MOBİL — SİNEMATİK AÇILIŞ
+  ══════════════════════════════ */
+
+  /* Hero tam ekran */
+  .hero {
+    padding: 0;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Arka ışık huzmesi daha büyük */
+  .hero::before {
+    width: 100vw;
+    height: 100vw;
+    top: -20%;
+    opacity: 1.2;
+  }
+
+  .hero-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    padding: 40px 28px 100px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Tag görünsün ama küçük */
+  .hero-tag {
+    font-size: 10px;
+    padding: 4px 14px 4px 10px;
+  }
+
+  /* Başlık büyük ve dramatik */
+  .hero-title {
+    font-size: clamp(44px, 14vw, 64px);
+    letter-spacing: -1px;
+    line-height: 0.9;
+    margin-bottom: 0;
+  }
+
+  /* Alt yazı görünsün */
+  .hero-sub {
+    font-size: 13px;
+    max-width: 280px;
+    opacity: 0.7;
+    line-height: 1.6;
+  }
+
+  /* Tarih küçük, ortaya hizalı */
+  .journey-dates {
+    margin-top: 4px;
+    justify-content: center;
+    gap: 10px;
+  }
+  .date-item { align-items: center; }
+  .date-value { font-size: 13px; }
+  .date-label { font-size: 8px; letter-spacing: 2px; }
+  .date-sep-line { width: 20px; }
+
+  /* Stats: alt alta, büyük sayılar */
+  .hero-stats {
+    flex-direction: row;
+    gap: 12px;
+    padding-top: 0;
+    justify-content: center;
+  }
+  .stat-card {
+    padding: 14px 22px;
+    min-width: 110px;
+    border-radius: 14px;
+  }
+  .stat-num   { font-size: 38px; }
+  .stat-label { font-size: 9px; letter-spacing: 1.5px; }
+
+  /* Aşağı kaydır oku — animasyonlu */
+  .hero::after {
+    content: '↓';
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 18px;
+    color: var(--sakura2);
+    opacity: 0.6;
+    animation: scroll-hint 2s ease-in-out infinite;
+  }
+  @keyframes scroll-hint {
+    0%,100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
+    50%      { transform: translateX(-50%) translateY(6px); opacity: 0.8; }
+  }
+
+  /* Geri kalanlar */
+  .petal-divider { padding: 14px 18px 0; }
+  .map-section   { margin: 12px 14px 0; }
+  #world-map     { height: 200px; }
+  .controls      { padding: 10px 16px 6px; gap: 7px; flex-wrap: wrap; }
+  .list-section  { padding: 6px 14px 56px; }
+
+  /* Sakura ağacı arka planda tam boy */
+  #sakura-tree  { width: 320px; height: 420px; opacity: 0.12; bottom: -30px; right: -60px; }
+  #blossom-left { width: 180px; height: 230px; opacity: 0.08; }
+
+  /* Kontroller küçük */
+  .fbtn             { padding: 6px 12px; font-size: 11px; }
+  #suggest-btn      { font-size: 11px; padding: 6px 12px; }
+  .region-sel       { font-size: 11px; padding: 6px 10px; }
+  .scene-switch-btn { font-size: 10px; padding: 5px 12px; }
 }
 </style>
 </head>
@@ -1343,9 +1499,9 @@ body {
     <!-- Sol üst dal -->
     <path d="M238 230 C218 210 196 192 178 174 C160 156 145 140 132 122" stroke-width="5" fill="none"/>
     <!-- Sağ üst dal -->
-    <path d="M240 215 C258  276 176 292 158 C308 140 322 124 334 108" stroke-width="5" fill="none"/>
+    <path d="M240 215 C258 195 276 176 292 158 C308 140 322 124 334 108" stroke-width="5" fill="none"/>
     <!-- Merkez üst -->
-    <path d="M240 220 C238  237 168 236 142 C235 116 235 90 236 65" stroke-width="6" fill="none"/>
+    <path d="M240 220 C238 195 237 168 236 142 C235 116 235 90 236 65" stroke-width="6" fill="none"/>
     <!-- Sol ince dallar -->
     <path d="M145 295 C128 278 114 260 102 242" stroke-width="4" fill="none"/>
     <path d="M95 162 C80 148 68 132 58 115" stroke-width="3" fill="none"/>
@@ -1442,6 +1598,21 @@ body {
         <span class="line2">197 Film</span>
       </h1>
       <p class="hero-sub">Her ülke bir sinema, her film bir yolculuk. Dünya sinemasını birlikte keşfet.</p>
+      <div class="journey-dates">
+        <div class="date-item">
+          <span class="date-label">Başlangıç</span>
+          <span class="date-value">17 · 05 · 2026</span>
+        </div>
+        <div class="date-sep">
+          <div class="date-sep-line"></div>
+          <div class="date-sep-dot"></div>
+          <div class="date-sep-line"></div>
+        </div>
+        <div class="date-item">
+          <span class="date-label">Bitiş</span>
+          <span class="date-value" style="color:var(--text3);font-style:italic;font-size:14px;opacity:0.4">devam ediyor…</span>
+        </div>
+      </div>
     </div>
     <div class="hero-stats">
       <div class="stat-card">
@@ -2589,7 +2760,7 @@ init();
 
 <!-- ══ MÜZİK ══ -->
 <iframe id="yt-frame"
-  src="https://www.youtube.com/embed/-zOjVJgIVHA?enablejsapi=1&autoplay=0&loop=1&playlist=-zOjVJgIVHA"
+  src="https://www.youtube.com/embed/pxPbZ-dogT8?enablejsapi=1&autoplay=0&loop=1&playlist=pxPbZ-dogT8"
   allow="autoplay; encrypted-media"
   frameborder="0">
 </iframe>
