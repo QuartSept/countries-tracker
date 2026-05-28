@@ -1354,6 +1354,86 @@ body {
   background: var(--border2);
 }
 
+/* ══ ŞU AN İZLENİYOR KARTI ══ */
+#now-watching-card {
+  display: none;
+  background: linear-gradient(135deg, #2a1635, #1e1028);
+  border: 1px solid #e879a040;
+  border-radius: 14px;
+  padding: 12px 16px;
+  position: relative;
+  overflow: hidden;
+  min-width: 160px;
+  cursor: default;
+}
+#now-watching-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--sakura2), var(--wisteria));
+  animation: nw-shimmer 2s ease-in-out infinite;
+}
+@keyframes nw-shimmer {
+  0%,100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+#now-watching-card.visible { display: block; }
+
+.nw-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--sakura2);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.nw-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--sakura2);
+  box-shadow: 0 0 6px var(--sakura2);
+  animation: glow-pulse 1.5s infinite;
+}
+.nw-flag {
+  font-size: 28px;
+  line-height: 1;
+  display: block;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 2px 8px #00000044);
+}
+.nw-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+.nw-region {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-top: 2px;
+  display: block;
+}
+/* mobil */
+@media(max-width:700px){
+  #now-watching-card { min-width: 120px; padding: 10px 14px; }
+  .nw-name { font-size: 14px; max-width: 110px; }
+  .nw-flag { font-size: 22px; }
+}
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -1624,6 +1704,12 @@ body {
         <span class="stat-num" id="cnt-total">0</span>
         <span class="stat-label">Toplam</span>
       </div>
+      <div id="now-watching-card">
+        <div class="nw-label"><span class="nw-dot"></span> Sırada</div>
+        <span class="nw-flag" id="nw-flag">🎬</span>
+        <span class="nw-name" id="nw-name">—</span>
+        <span class="nw-region" id="nw-region"></span>
+      </div>
     </div>
   </div>
 </div>
@@ -1702,6 +1788,7 @@ body {
     <div class="slot-actions">
       <button class="slot-action-btn" onclick="spinSlot()">🔀 Tekrar</button>
       <button class="slot-action-btn" onclick="scrollToResult()">📍 Listede Göster</button>
+      <button class="slot-action-btn" onclick="selectForTonight()" style="border-color:#e879a060;color:var(--sakura)">🎯 Seç</button>
       <button class="slot-action-btn primary" onclick="markAndClose()">✓ İzledim!</button>
     </div>
   </div>
@@ -1987,6 +2074,38 @@ body {
 })();
 
 
+
+/* ══ ŞU AN İZLENİYOR ══ */
+let nowWatching = null;
+
+function setNowWatching(country) {
+  nowWatching = country;
+  const card   = document.getElementById('now-watching-card');
+  const flagEl = document.getElementById('nw-flag');
+  const nameEl = document.getElementById('nw-name');
+  const regEl  = document.getElementById('nw-region');
+
+  if (!country) {
+    card.classList.remove('visible');
+    return;
+  }
+  flagEl.textContent = country.flag;
+  nameEl.textContent = country.name;
+  regEl.textContent  = country.r;
+  card.classList.add('visible');
+}
+
+function clearNowWatching() {
+  setNowWatching(null);
+  nowWatching = null;
+}
+
+function selectForTonight() {
+  if (!slotResult) return;
+  setNowWatching(slotResult);
+  closeSlot();
+}
+
 /* ══ SLOT MAKİNESİ ══ */
 let slotResult = null;
 let slotTimer  = null;
@@ -2122,10 +2241,15 @@ function scrollToResult() {
 
 function markAndClose() {
   if (!slotResult) return;
+  const res = slotResult;
   closeSlot();
   setTimeout(() => {
-    if (!checks[slotResult.code] || !checks[slotResult.code].checked) {
-      toggle(slotResult.code);
+    if (!checks[res.code] || !checks[res.code].checked) {
+      toggle(res.code);
+    }
+    // now watching'de bu ülke varsa kaldır
+    if (nowWatching && nowWatching.code === res.code) {
+      clearNowWatching();
     }
   }, 300);
 }
@@ -2444,6 +2568,10 @@ function toggle(code) {
   refreshItem(code);
   refreshMapPath(code);
   updateStats();
+  // İşaretlenince now watching'den kaldır
+  if (nowWatching && nowWatching.code === code && checks[code] && checks[code].checked) {
+    clearNowWatching();
+  }
 }
 
 function skip(code, e) {
